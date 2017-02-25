@@ -1,0 +1,17 @@
+TOPIC
+    about_{{ModuleName}}
+
+SHORT DESCRIPTION
+    {{ModuleDescription}}
+
+LONG DESCRIPTION
+    {{ModuleDescription}}
+
+EXAMPLES
+    TBD
+
+KEYWORDS
+    {{Tags}}
+
+SEE ALSO
+    {{HelpLink}}
