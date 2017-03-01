@@ -4,30 +4,26 @@ param (
     [parameter(Position=0, ParameterSetName='Build')]
     [switch]$BuildModule,
     [parameter(Position=1, ParameterSetName='Build')]
-    [switch]$CreatePSGalleryProfile,
-    [parameter(Position=2, ParameterSetName='Build')]
     [switch]$UpdateRelease,
-    [parameter(Position=3, ParameterSetName='Build')]
+    [parameter(Position=2, ParameterSetName='Build')]
     [switch]$UploadPSGallery,
-    [parameter(Position=4, ParameterSetName='Build')]
+    [parameter(Position=3, ParameterSetName='Build')]
     [switch]$GitCheckin,
-    [parameter(Position=5, ParameterSetName='Build')]
+    [parameter(Position=4, ParameterSetName='Build')]
     [switch]$GitPush,
-    [parameter(Position=6, ParameterSetName='Build')]
+    [parameter(Position=5, ParameterSetName='Build')]
     [switch]$InstallAndTestModule,
-    [parameter(Position=7, ParameterSetName='Build')]
+    [parameter(Position=6, ParameterSetName='Build')]
     [version]$NewVersion,
-    [parameter(Position=8, ParameterSetName='Build')]
-    [string]$ReleaseNotes,
-    [parameter(Position=0, ParameterSetName='CBH')]
+    [parameter(Position=7, ParameterSetName='CBH')]
     [switch]$InsertCBH,
-    [parameter(Position=0, ParameterSetName='Help')]
+    [parameter(Position=8, ParameterSetName='Help')]
     [switch]$Help
 )
 
 $HelpContents = @'
 This is a wrapper script for invoke-build and a set of build tasks in the included .\OhMyPsh.build.ps1 file.
-As this is a wrapper script almost all parameters are simple switches. This help output will 
+As this is a wrapper script almost all parameters are simple switches. This help output will
 cover what each of these switches will accomplish.
 
     Help - This help output.
@@ -43,19 +39,15 @@ Use one or more of the following switches with this script to kick off some of t
 build tasks for your module project. All of the following switches can be stringed together. They
 are listed in the order they would be processed in were they all to be used at once.
 
-    CreatePSGalleryProfile - Create an initial PSGallery profile for your project. This will only be 
-    useful if you have an API key for the site stored in "$(split-path $PROFILE)\psgalleryapi.txt"
-    and plan on releasing the module to the powershell gallery.
-
     UpdateRelease - If you have manually updated the version.txt file then this will trigger the build
-    scripts to begin building and releasing the new version. It updates the module manifest file as
-    well. You can use this in conjunction with the -NewVersion parameter to update the version.txt
-    file as well.
+    scripts to begin building and releasing the new version. You will be prompted for release ReleaseNotes
+    for the module manifest file. You can use this in conjunction with the -NewVersion parameter
+    to update the version.txt file as well.
 
-    NewVersion - Can be used with the -UpdateRelease parameter to start a new version of the 
+    NewVersion - Can be used with the -UpdateRelease parameter to start a new version of the
     module for release.
 
-    BuildModule - This is the default action if no parameters are passed to this script. This kicks off 
+    BuildModule - This is the default action if no parameters are passed to this script. This kicks off
     the build process as defined by the .\build\.buildenvironment.ps1 configuration script. If all
     goes well a completed and fully packaged build of your project will be created in the following
     locations:
@@ -63,18 +55,15 @@ are listed in the order they would be processed in were they all to be used at o
         .\release\<modulename>-<version>.zip - Every version will have an assoicated zip created
         .\release\<modulename> - The current release will always be in a folder with the module name
         .\release\<modulename>.zip - The current release in zip format for easy automated installation
-    
-    InstallAndTestModule - Attempt to install a finished build of the module from 
+
+    InstallAndTestModule - Attempt to install a finished build of the module from
     .\release\<modulename>. After installing the module we then attempt to load it to ensure it works.
-    
+
     UploadPSGallery - Upload a release to the PSGallery for others to install with install-module
-    (PowerShell 5+ only). Every uploaded release requires release notes which can be passed
-    via the -ReleaseNotes parameter. This will also fail outright if you don't have appropriate
-    LicenseURI and IconURI entries uncommented and set in your <modulename>.psd1 manifest
+    (PowerShell 5+ only). NOTE: This will fail outright if you don't have appropriate
+    LicenseURI, IconURI, and ReleaseNotes entries uncommented and set in your module manifest
     file.
 
-    ReleaseNotes - Used in conjunction with the -UploadPSGallery parameter.
-    
     GitCheckin - Not finished with this yet, sorry.
 
     GitPush - Not finished with this yet, sorry.
@@ -136,16 +125,6 @@ switch ($psCmdlet.ParameterSetName) {
             throw 'Unable to load InvokeBuild!'
         }
 
-        # Create a gallery profile?
-        if ($CreatePSGalleryProfile) {
-            try {
-                Invoke-Build -File '.\OhMyPsh.build.ps1' -Task NewPSGalleryProfile
-            }
-            catch {
-                throw 'Unable to create the .psgallery profile file!'
-            }
-        }
-
         # Update your release version?
         if ($UpdateRelease) {
             if ($NewVersion -ne $null) {
@@ -184,9 +163,6 @@ switch ($psCmdlet.ParameterSetName) {
 
         # Upload to gallery?
         if ($UploadPSGallery) {
-            if ([string]::IsNullOrEmpty($ReleaseNotes)) {
-                throw '$ReleaseNotes needs to be specified to run this operation!'
-            }
             try {
                 Invoke-Build -File '.\OhMyPsh.build.ps1' -Task PublishPSGallery -ReleaseNotes $ReleaseNotes
             }

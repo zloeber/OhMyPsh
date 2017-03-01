@@ -1,8 +1,4 @@
-﻿param (
-    [string]$ReleaseNotes = $null
-)
-
-if (Test-Path '.\build\OhMyPsh.buildenvironment.ps1') {
+﻿if (Test-Path '.\build\OhMyPsh.buildenvironment.ps1') {
     . '.\build\OhMyPsh.buildenvironment.ps1'
 }
 else {
@@ -90,7 +86,7 @@ task LoadRequiredModules {
 #Synopsis: Load dot sourced functions into this build session
 task LoadBuildTools {
     # Dot source any build script functions we need to use
-    Get-ChildItem $BuildToolPath/dotSource -Recurse -Filter "*.ps1" -File | Foreach { 
+    Get-ChildItem $BuildToolPath/dotSource -Recurse -Filter "*.ps1" -File | Foreach {
         Write-Output "      Dot sourcing script file: $($_.Name)"
         . $_.FullName
     }
@@ -147,10 +143,16 @@ task Configure ValidateRequirements, LoadRequiredModules, LoadModuleManifest, Lo
 task UpdateVersion LoadBuildTools, LoadModuleManifest, LoadModule, (job Version -Safe), {
     assert ($Script:Version -ne $null) 'Unable to pull a version from version.txt!'
     if (error Version) {
-        Update-ModuleManifest -Path $ModuleManifestFullPath -ModuleVersion $Script:Version
+        do {
+            $NewReleaseNotes = Read-Host -Prompt 'Enter brief release notes for this new version'
+            if ([string]::IsNullOrEmpty($NewReleaseNotes)) {
+                Write-Host -ForegroundColor:Red "You need to enter some kind of notes for your new release to update the manifest with!"
+            }
+        } while ([string]::IsNullOrEmpty($NewReleaseNotes))
+        Update-ModuleManifest -Path $ModuleManifestFullPath -ModuleVersion $Script:Version -ReleaseNotes $NewReleaseNotes
     }
     else {
-        Write-Output '      Module manifest version and version found in version.txt are already the same.'
+        Write-Error '      Module manifest version and version found in version.txt are already the same.'
     }
 }
 
@@ -158,7 +160,7 @@ task UpdateVersion LoadBuildTools, LoadModuleManifest, LoadModule, (job Version 
 task Clean {
     $null = Remove-Item $ScratchPath -Force -Recurse -ErrorAction 0
     $null = New-Item $ScratchPath -ItemType:Directory
-    Write-Host -NoNewLine "      Clean up our scratch/staging directory at .\$($Script:BuildEnv['ScratchFolder'])" 
+    Write-Host -NoNewLine "      Clean up our scratch/staging directory at .\$($Script:BuildEnv['ScratchFolder'])"
     Write-Host -ForegroundColor Green '...Complete!'
 }
 
@@ -183,11 +185,11 @@ task PrepareStage {
 task UpdateCBHtoScratch {
     $CBHPattern = "(?ms)(^\s*\<#.*\.SYNOPSIS.*?#>)"
     $CBHUpdates = 0
-    
+
     # Create the directories
     $null = New-Item "$($ScratchPath)\src" -ItemType:Directory -Force
     $null = New-Item "$($ScratchPath)\$($Script:BuildEnv['PublicFunctionSource'])" -ItemType:Directory -Force
-    
+
     Write-Host "      Attempting to insert comment based help into functions (saving to our scratch directory only)."
     Get-ChildItem "$($ScriptRoot)\$($Script:BuildEnv['PublicFunctionSource'])" -Filter *.ps1 | ForEach-Object {
         $FileName = $_.Name
@@ -198,7 +200,7 @@ task UpdateCBHtoScratch {
         $currscriptblock = [scriptblock]::Create($currscript)
         . $currscriptblock
         $currfunct = get-command $CBH.FunctionName
-        
+
         Write-Host -NoNewline "      ...Comment based help already exists: "
         if ($currfunct.definition -notmatch $CBHPattern) {
             $CBHUpdates++
@@ -216,7 +218,7 @@ task UpdateCBHtoScratch {
     Write-Host ''
     Write-Host -ForegroundColor Yellow '****************************************************************************************************'
     Write-Host -foregroundcolor Yellow "  Updated Functions: $CBHUpdates"
-    if ($CBHUpdates -gt 0) {    
+    if ($CBHUpdates -gt 0) {
         Write-Host ''
         Write-Host -foregroundcolor Yellow "  Updated Function Location: $($ScratchPath)\$($Script:BuildEnv['PublicFunctionSource'])"
         Write-Host ''
@@ -229,7 +231,7 @@ task UpdateCBHtoScratch {
 # Synopsis:  Collect a list of our public methods for later module manifest updates
 task GetPublicFunctions {
     $Exported = @()
-    Get-ChildItem "$($ScriptRoot)\$($Script:BuildEnv['PublicFunctionSource'])" -Recurse -Filter "*.ps1" -File | Sort-Object Name | Foreach { 
+    Get-ChildItem "$($ScriptRoot)\$($Script:BuildEnv['PublicFunctionSource'])" -Recurse -Filter "*.ps1" -File | Sort-Object Name | Foreach {
         $Exported += ([System.Management.Automation.Language.Parser]::ParseInput((Get-Content -Path $_.FullName -Raw), [ref]$null, [ref]$null)).FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $false) | Foreach {$_.Name}
     }
 
@@ -411,13 +413,13 @@ task AnalyzeScript -After CreateModulePSM1 -if {$Script:BuildEnv['OptionAnalyzeC
 
 # Synopsis: Build help files for module
 task CreateHelp CreateMarkdownHelp, CreateExternalHelp, CreateUpdateableHelpCAB, {
-    Write-Host -NoNewLine '      Create help files' 
+    Write-Host -NoNewLine '      Create help files'
     Write-Host -ForegroundColor Green '...Complete!'
 }
 
 # Synopsis: Build help files for module and ignore missing section errors
 task TestCreateHelp Configure, CreateMarkdownHelp, CreateExternalHelp, CreateUpdateableHelpCAB,  {
-    Write-Host -NoNewLine '      Create help files' 
+    Write-Host -NoNewLine '      Create help files'
     Write-Host -ForegroundColor Green '...Complete!'
 }
 
@@ -429,7 +431,7 @@ task CreateMarkdownHelp GetPublicFunctions, {
     $OnlineModuleLocation = "$($Script:BuildEnv['ModuleWebsite'])/$($Script:BuildEnv['BaseReleaseFolder'])"
     $FwLink = "$($OnlineModuleLocation)/$($CurrentReleaseFolder)/docs/$($Script:BuildEnv['ModuleToBuild']).md"
     $ModulePage = "$($StageReleasePath)\docs\$($Script:BuildEnv['ModuleToBuild']).md"
-    
+
     # Create the .md files and the generic module page md as well
     $null = New-MarkdownHelp -module $Script:BuildEnv['ModuleToBuild'] -OutputFolder "$($StageReleasePath)\docs\" -Force -WithModulePage -Locale 'en-US' -FwLink $FwLink -HelpVersion $Script:Version
 
@@ -494,7 +496,7 @@ task PushVersionRelease {
     $null = Remove-Item $ThisReleasePath -Force -Recurse -ErrorAction 0
     $null = New-Item $ThisReleasePath -ItemType:Directory -Force
     Copy-Item -Path "$($StageReleasePath)\*" -Destination $ThisReleasePath -Recurse
-    Out-Zip $StageReleasePath $ReleasePath\$Script:BuildEnv['ModuleToBuild']'-'$Version'.zip' -overwrite
+    Out-Zip $StageReleasePath "$ReleasePath\$($Script:BuildEnv['ModuleToBuild'])-$Version.zip" -overwrite
     Write-Host -NoNewLine "      Pushing a version release to $($ThisBuildReleasePath)"
     Write-Host -ForeGroundColor green '...Complete!'
 }
@@ -513,7 +515,7 @@ task PushCurrentRelease {
         $null = Remove-Item $CurrentReleasePath -Force -Recurse -ErrorAction 0
         $null = New-Item $CurrentReleasePath -ItemType:Directory -Force
         Copy-Item -Path "$($StageReleasePath)\*" -Destination $CurrentReleasePath -Recurse -force
-        Out-Zip $StageReleasePath $ReleasePath\$Script:BuildEnv['ModuleToBuild']'-current.zip' -overwrite
+        Out-Zip $StageReleasePath "$ReleasePath\$($Script:BuildEnv['ModuleToBuild'])-current.zip" -overwrite
         Write-Host -NoNewLine "      Pushing a version release to $($ThisBuildCurrentReleasePath)"
         Write-Host -ForeGroundColor green '...Complete!'
     }
@@ -548,49 +550,11 @@ task GithubPush Version, {
     assert (-not $changes) "Please, commit changes."
 }
 
-# Synopsis: Create a new .psgallery project profile file (.psgallery)
-task NewPSGalleryProfile Configure, {
-    $PSGallaryParams = @{}
-    $PSGallaryParams.Path = "$($CurrentReleasePath)"
-    $PSGallaryParams.ProjectUri = $Script:BuildEnv['ModuleWebsite']
-    If ($ReleaseNotes -ne $null) {
-        $PSGallaryParams.ReleaseNotes = $ReleaseNotes
-    }
-    
-    # Update our gallary data with any tags from the manifest file (if they exist)
-
-    $PSGallaryParams.Tags  = @($Script:Manifest.Tags)
-    $PSGallaryParams.LicenseUri = $Script:Manifest.LicenseUri.ToString()
-    $PSGallaryParams.IconUri = $Script:Manifest.IconUri.ToString()
-
-    New-PSGalleryProjectProfile @PSGallaryParams
-    Write-Host -NoNewLine "      Updating .psgallery profile"
-    Write-Host -ForeGroundColor green '...Complete!'
-}
-
-# Synopsis: Update the psgallery project profile data file
-task UpdatePSGalleryProfile Configure, {
-    $PSGallaryParams = @{}
-    $PSGallaryParams.Path = "$($CurrentReleasePath)"
-    $PSGallaryParams.ProjectUri = $Script:BuildEnv['ModuleWebsite']
-    If ($ReleaseNotes -ne $null) {
-        $PSGallaryParams.ReleaseNotes = $ReleaseNotes
-    }
-    
-    # Update our gallary data with any tags from the manifest file (if they exist)
-    $PSGallaryParams.Tags  = @($Script:Manifest.Tags)
-    $PSGallaryParams.LicenseUri = $Script:Manifest.LicenseUri.ToString()
-    $PSGallaryParams.IconUri = $Script:Manifest.IconUri.ToString()
-
-    Update-PSGalleryProjectProfile @PSGallaryParams
-    Write-Host -NoNewLine "      Updating .psgallery profile"
-    Write-Host -ForeGroundColor green '...Complete!'
-}
-
 # Synopsis: Push the project to PSScriptGallery
-task PublishPSGallery UpdatePSGalleryProfile, {
-    Upload-ProjectToPSGallery
+task PublishPSGallery  {
+    assert (Test-Path $Script:CurrentReleasePath) "Unable to find the current build release folder!"
     Write-Host -NoNewLine "      Uploading project to PSGallery"
+    Upload-ProjectToPSGallery -Path $Script:CurrentReleasePath -NuGetApiKey $Script:BuildEnv['NuGetApiKey']
     Write-Host -ForeGroundColor green '...Complete!'
 }
 
@@ -605,7 +569,7 @@ task BuildSessionCleanup {
     Remove-Module $Script:BuildEnv['ModuleToBuild'] -Erroraction Ignore
 
     # Dot source any post build cleanup scripts.
-    Get-ChildItem $BuildToolPath/cleanup -Recurse -Filter "*.ps1" -File | Foreach { 
+    Get-ChildItem $BuildToolPath/cleanup -Recurse -Filter "*.ps1" -File | Foreach {
         Write-Output "      Dot sourcing cleanup script file: $($_.Name)"
         . $_.FullName
     }
@@ -629,7 +593,7 @@ task InstallModule Version, {
         assert (-not (Test-Path $ModuleInstallPath)) 'Module already installed and you opted not to remove it. Cancelling install operation!'
         Write-Host -ForeGroundColor green '...Done!'
     }
-    
+
     Write-Host "      Installing current module:"
     Write-Host "         Source - $($CurrentModulePath)"
     Write-Host "         Destination - $($ModuleInstallPath)"
@@ -657,36 +621,36 @@ task InstallAndTestModule InstallModule,TestInstalledModule
 
 # Synopsis: The default build
 task . `
-        Configure, 
-Clean, 
-PrepareStage, 
-GetPublicFunctions,
-FormatCode,
-SanitizeCode,
-CreateHelp,
-CreateModulePSM1, 
-PushVersionRelease, 
-PushCurrentRelease, 
-BuildSessionCleanup
+        Configure,
+        Clean,
+        PrepareStage,
+        GetPublicFunctions,
+        FormatCode,
+        SanitizeCode,
+        CreateHelp,
+        CreateModulePSM1,
+        PushVersionRelease,
+        PushCurrentRelease,
+        BuildSessionCleanup
 
 # Synopsis: Build without code formatting
 task BuildWithoutCodeFormatting `
-        Configure, 
-Clean, 
-PrepareStage,
-GetPublicFunctions,
-CreateHelp,
-CreateModulePSM1, 
-PushVersionRelease, 
-PushCurrentRelease, 
-BuildSessionCleanup
+        Configure,
+        Clean,
+        PrepareStage,
+        GetPublicFunctions,
+        CreateHelp,
+        CreateModulePSM1,
+        PushVersionRelease,
+        PushCurrentRelease,
+        BuildSessionCleanup
 
 # Synopsis: Instert Comment Based Help where it doesn't already exist (output to scratch directory)
 task  InsertMissingCBH `
-        Configure, 
-Clean, 
-UpdateCBHtoScratch,
-BuildSessionCleanup
+        Configure,
+        Clean,
+        UpdateCBHtoScratch,
+        BuildSessionCleanup
 
 # Synopsis: Test the code formatting module only
 task TestCodeFormatting Configure, Clean, PrepareStage, GetPublicFunctions, FormatCode

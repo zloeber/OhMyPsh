@@ -1,0 +1,4 @@
+$PreLoad = {}
+$PostLoad = {
+    Write-SessionBannerToHost
+}

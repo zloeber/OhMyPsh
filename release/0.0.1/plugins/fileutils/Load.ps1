@@ -1,0 +1,3 @@
+$PreLoad = {}
+$PostLoad = {}
+$Shutdown = {}

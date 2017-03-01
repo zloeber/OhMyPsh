@@ -1,0 +1,22 @@
+################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/backend/obj/*
+/Fasdr.Backend/obj/*
+/Fasdr.UnitTests/obj/*
+/Fasdr/packages/System.IO.Abstractions.*
+/Fasdr/packages/NUnit.*
+/Fasdr/packages/System.IO.Abstractions.TestingHelpers.*
+/Fasdr.UnitTests/bin/*
+/Fasdr/.vs/*
+*.dll
+*.pdb
+/Fasdr/packages/System.IO.Abstractions.*
+/Fasdr/packages/System.IO.Abstractions.TestingHelpers.*
+/Fasdr/packages/DuoVia.*
+/Fasdr/Fasdr.Windows/obj/Debug
+/Fasdr.Windows/obj/Debug
+Fasdr/fasdr.userprefs
+Fasdr.Windows/obj/
+/Fasdr.Backend/bin/Debug/Fasdr.Backend.dll.mdb

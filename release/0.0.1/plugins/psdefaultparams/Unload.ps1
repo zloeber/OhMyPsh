@@ -1,0 +1,3 @@
+$Unload = {
+    Restore-OMPOriginalPSDefaultParameter
+}
