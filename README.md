@@ -108,7 +108,7 @@ I've packaged up several useful (or sometimes just amusing) plugins as examples 
 ##### PSReadline
 I'm listing this one first for a reason. Several other plugins and features simply don't exist without this module running. As PowerShell 5.0 loads this module by default in every session this plugin doesn't really serve to ensure that the module is loaded (though it does do that as well) but rather acts as a holding place for psreadline customizations you want applied across the board.
 
-This plugin also puts logic around loading prios session history into new sessions (the default is 50 items).
+This plugin also puts logic around loading prior session history into new sessions (the default is 50 items).
 
 You should feel free to modify your psreadline configuration to suit your needs.
 
@@ -118,7 +118,7 @@ plugins -> psreadline -> src -> psreadline.ps1
 
 This plugin does add a few variables to the OhMyPsh user profile
 
-PSReadlineHistoryPath - You may want to modify this to live on Onedrive or Dropbox. The default location is in `Split-Path $PROFILE`
+--PSReadlineHistoryPath-- - You may want to modify this to live on Onedrive or Dropbox. The default location is in `Split-Path $PROFILE`
 
 PSReadlinePersistantHistoryCount - This determines how many previous history items are loaded into a fresh session. The default is 50.
 

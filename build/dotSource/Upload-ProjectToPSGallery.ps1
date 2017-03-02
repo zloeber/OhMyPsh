@@ -5,36 +5,27 @@ function Script:Upload-ProjectToPSGallery {
             Upload module project to Powershell Gallery
         .DESCRIPTION
             Upload module project to Powershell Gallery
-        .PARAMETER ModulePath
+        .PARAMETER Name
             Path to module to upload.
-        .PARAMETER APIKey
+        .PARAMETER Repository
+            Destination gallery (default is PSGallery)
+        .PARAMETER NuGetApiKey
             API key for the powershellgallery.com site.
         .EXAMPLE
             .\Upload-ProjectToPSGallery.ps1
         .NOTES
         Author: Zachary Loeber
         Site: http://www.the-little-things.net/
-
-
-        Version History
-        1.0.0 - Initial release
         #>
     [CmdletBinding()]
     param(
-        [parameter(Mandatory=$true, HelpMessage='Path of module project files to upload.')]
-        [string]$Path,
+        [parameter(Mandatory=$true, HelpMessage='Name of the module to upload.')]
+        [string]$Name,
         [parameter(HelpMessage='Destination gallery (default is PSGallery)')]
         [string]$Repository = 'PSGallery',
         [parameter(HelpMessage='API key for the powershellgallery.com site.')]
         [string]$NuGetApiKey
     )
-
-    $MyParams = $PSCmdlet.MyInvocation.BoundParameters
-    $MyParams.Keys | ForEach {
-        Write-Verbose "Adding manually defined parameter $($_)"
-        $PublishParams.$_ = $MyParams[$_]
-    }
-
     # if no API key is defined then look for psgalleryapi.txt in the local profile directory and try to use it instead.
     if ([string]::IsNullOrEmpty($PublishParams.NuGetApiKey)) {
         $psgalleryapipath = "$(Split-Path $Profile)\psgalleryapi.txt"
@@ -44,10 +35,9 @@ function Script:Upload-ProjectToPSGallery {
             return
         }
         else {
-            $PublishParams.NuGetApiKey = get-content -raw $psgalleryapipath
+            $NuGetApiKey = get-content -raw $psgalleryapipath
         }
     }
 
-    # If we made it this far then try to publish the module wth our loaded parameters
-    Publish-Module @PublishParams
+    Publish-Module -Name $Name -NuGetApiKey $NuGetApiKey -Repository $Repository
 }

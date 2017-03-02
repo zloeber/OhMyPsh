@@ -164,10 +164,10 @@ switch ($psCmdlet.ParameterSetName) {
         # Upload to gallery?
         if ($UploadPSGallery) {
             try {
-                Invoke-Build -File '.\OhMyPsh.build.ps1' -Task PublishPSGallery -ReleaseNotes $ReleaseNotes
+                Invoke-Build -File '.\OhMyPsh.build.ps1' -Task PublishPSGallery
             }
             catch {
-                throw 'Unable to upload projec to the PowerShell Gallery!'
+                throw 'Unable to upload project to the PowerShell Gallery!'
             }
         }
 

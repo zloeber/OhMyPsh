@@ -325,31 +325,6 @@ task GitStatus -If (Test-Path .git) {
     }
 }
 
-# Synopsis: Run code formatter against our working build (dogfood).
-task FormatCode -if {($Script:BuildEnv['OptionFormatCode']) -and ($Script:BuildEnv['OptionFormatCode'].Count -gt 0)} {
-    Get-ChildItem -Path $ScratchPath -Include "*.ps1","*.psm1" -Recurse -File | Where {$_.FullName -notlike "$($StageReleasePath)*"} | ForEach {
-        $FormattedOutFile = $_.FullName
-        Write-Output "      Formatting File: $($FormattedOutFile)"
-        $FormattedCode = get-content $_ -raw |
-        Format-ScriptRemoveStatementSeparators |
-        Format-ScriptExpandFunctionBlocks |
-        Format-ScriptExpandNamedBlocks |
-        Format-ScriptExpandParameterBlocks |
-        Format-ScriptExpandStatementBlocks |
-        Format-ScriptPadOperators |
-        Format-ScriptPadExpressions |
-        Format-ScriptFormatTypeNames |
-        Format-ScriptReduceLineLength |
-        Format-ScriptRemoveSuperfluousSpaces |
-        Format-ScriptFormatCodeIndentation
-
-        $FormattedCode | Out-File -FilePath $FormattedOutFile -force -Encoding:utf8
-    }
-    Write-Host ''
-    Write-Host -NoNewLine '      Reformat script files'
-    Write-Host -ForegroundColor Green '...Complete!'
-}
-
 # Synopsis: Validate that sensitive strings are not found in your code
 task SanitizeCode -if {$Script:BuildEnv['OptionScanSensitiveStrings']} {
     ForEach ($Term in $Script:BuildEnv['OptionFormatCode']) {
@@ -551,10 +526,17 @@ task GithubPush Version, {
 }
 
 # Synopsis: Push the project to PSScriptGallery
-task PublishPSGallery  {
-    assert (Test-Path $Script:CurrentReleasePath) "Unable to find the current build release folder!"
-    Write-Host -NoNewLine "      Uploading project to PSGallery"
-    Upload-ProjectToPSGallery -Path $Script:CurrentReleasePath -NuGetApiKey $Script:BuildEnv['NuGetApiKey']
+task PublishPSGallery LoadBuildTools, InstallModule, {
+    if (Get-Module $Script:BuildEnv['ModuleToBuild']) {
+        # If the module is already loaded then unload it.
+        Remove-Module $Script:BuildEnv['ModuleToBuild']
+    }
+
+    # Try to import the module
+    Import-Module -Name $Script:BuildEnv['ModuleToBuild']
+
+    Write-Host -NoNewLine "      Uploading project to PSGallery: $($Script:BuildEnv['ModuleToBuild'])"
+    Upload-ProjectToPSGallery -Name $Script:BuildEnv['ModuleToBuild'] -NuGetApiKey $Script:BuildEnv['NuGetApiKey'] -Verbose
     Write-Host -ForeGroundColor green '...Complete!'
 }
 
@@ -581,14 +563,14 @@ task BuildSessionCleanup {
 # Synopsis: Install the current built module to the local machine
 task InstallModule Version, {
     $CurrentModulePath = "$($Script:BuildEnv['BaseReleaseFolder'])\$($Version)"
-    Write-Host -NoNewLine "      Validating $Script:BuildEnv['ModuleToBuild'] (Version $($Version)) exists"
+    Write-Host -NoNewLine "      Validating $($Script:BuildEnv['ModuleToBuild']) (Version $($Version)) exists"
     assert (Test-Path $CurrentModulePath) 'The current version module has not been built yet!'
     Write-Host -ForeGroundColor green '...Found!'
 
     $MyModulePath = "$($env:USERPROFILE)\Documents\WindowsPowerShell\Modules\"
     $ModuleInstallPath = "$($MyModulePath)$($Script:BuildEnv['ModuleToBuild'])"
     if (Test-Path $ModuleInstallPath) {
-        Write-Host -NoNewLine "      Removing installed module $Script:BuildEnv['ModuleToBuild']"
+        Write-Host -NoNewLine "      Removing installed module $($Script:BuildEnv['ModuleToBuild'])"
         Remove-Item -Path $ModuleInstallPath -Confirm -Recurse
         assert (-not (Test-Path $ModuleInstallPath)) 'Module already installed and you opted not to remove it. Cancelling install operation!'
         Write-Host -ForeGroundColor green '...Done!'
@@ -617,7 +599,7 @@ task TestInstalledModule Version, {
     Write-Host -ForeGroundColor green '...Done!'
 }
 
-task InstallAndTestModule InstallModule,TestInstalledModule
+task InstallAndTestModule InstallModule, TestInstalledModule
 
 # Synopsis: The default build
 task . `
@@ -625,20 +607,7 @@ task . `
         Clean,
         PrepareStage,
         GetPublicFunctions,
-        FormatCode,
         SanitizeCode,
-        CreateHelp,
-        CreateModulePSM1,
-        PushVersionRelease,
-        PushCurrentRelease,
-        BuildSessionCleanup
-
-# Synopsis: Build without code formatting
-task BuildWithoutCodeFormatting `
-        Configure,
-        Clean,
-        PrepareStage,
-        GetPublicFunctions,
         CreateHelp,
         CreateModulePSM1,
         PushVersionRelease,
