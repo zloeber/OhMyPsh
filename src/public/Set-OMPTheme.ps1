@@ -36,6 +36,9 @@ Function Set-OMPTheme {
             if (-not ([string]::IsNullOrEmpty($errmsg))) {
                 throw "Unable to load theme file $ThemeScriptPath"
             }
+            else {
+                Set-OMPProfileSetting -Name 'Theme' -Value $Name
+            }
         }
         catch {
             throw "Unable to load theme file $ThemeScriptPath"

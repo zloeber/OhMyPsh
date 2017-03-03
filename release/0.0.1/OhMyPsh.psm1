@@ -211,6 +211,52 @@ function Get-CallerPreference {
     }
 }
 
+function Get-OSPlatform {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [Switch]$IncludeLinuxDetails
+    )
+
+    #$Runtime = [System.Runtime.InteropServices.RuntimeInformation]
+    #$OSPlatform = [System.Runtime.InteropServices.OSPlatform]
+
+    $ThisIsCoreCLR = if ($IsCoreCLR) {$True} else {$False}
+    $ThisIsLinux = if ($IsLinux) {$True} else {$False} #$Runtime::IsOSPlatform($OSPlatform::Linux)
+    $ThisIsOSX = if ($IsOSX) {$True} else {$False} #$Runtime::IsOSPlatform($OSPlatform::OSX)
+    $ThisIsWindows = if ($IsWindows) {$True} else {$False} #$Runtime::IsOSPlatform($OSPlatform::Windows)
+
+    if (-not ($ThisIsLinux -or $ThisIsOSX)) {
+        $ThisIsWindows = $true
+    }
+
+    if ($ThisIsLinux) {
+        if ($IncludeLinuxDetails) {
+            $LinuxInfo = Get-Content /etc/os-release | ConvertFrom-StringData
+            $IsUbuntu = $LinuxInfo.ID -match 'ubuntu'
+            if ($IsUbuntu -and $LinuxInfo.VERSION_ID -match '14.04') {
+                return 'Ubuntu 14.04'
+            }
+            if ($IsUbuntu -and $LinuxInfo.VERSION_ID -match '16.04') {
+                return 'Ubuntu 16.04'
+            }
+            if ($LinuxInfo.ID -match 'centos' -and $LinuxInfo.VERSION_ID -match '7') {
+                return 'CentOS'
+            }
+        }
+        return 'Linux'
+    }
+    elseif ($ThisIsOSX) {
+        return 'OSX'
+    }
+    elseif ($ThisIsWindows) {
+        return 'Windows'
+    }
+    else {
+        return 'Unknown'
+    }
+}
+
 Function Invoke-OMPPersonalFunction {
     <#
     .SYNOPSIS
@@ -318,6 +364,15 @@ Function Read-HostContinue {
     }
 }
 
+function Test-IsAdmin {
+    if (([System.Environment]::OSVersion.Version.Major -gt 5) -and ((New-object Security.Principal.WindowsPrincipal ([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+        return $true
+    }
+    else {
+        return $false
+    }
+}
+
 ## PUBLIC MODULE FUNCTIONS AND DATA ##
 
 Function Add-OMPAutoLoadModule {
@@ -408,7 +463,9 @@ Function Add-OMPPlugin {
         [Parameter(Position = 1)]
         [switch]$Force,
         [Parameter(Position = 2)]
-        [switch]$NoProfileUpdate
+        [switch]$NoProfileUpdate,
+        [Parameter(Position = 3)]
+        [switch]$UpdateConfig
     )
 
     Begin {
@@ -448,7 +505,7 @@ Function Add-OMPPlugin {
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }
-            
+
             # Run preload plugin code
             $errmsg = $null
             $Preloadsb = [Scriptblock]::create(".{$Preload}")
@@ -458,7 +515,7 @@ Function Add-OMPPlugin {
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }
-            
+
             # Dot source any file in the plugin src directory of this plugin and track global functions
             $FullPluginSrcPath = Join-Path $PluginPath "$Name\src"
             Write-Verbose "Plugin $Name source file repo is $FullPluginSrcPath"
@@ -471,7 +528,7 @@ Function Add-OMPPlugin {
                 # Next look for any globally defined functions and tag them with a noteproperty to track
                 ([System.Management.Automation.Language.Parser]::ParseInput((Get-Content -Path $_.FullName -Raw), [ref]$null, [ref]$null)).FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $false) | Foreach-Object {
                     if (($_.Name).StartsWith('Global:')) {
-                        $globalfunc = Get-ChildItem -Path "Function:\$($_.Name -replace 'Global:','')" 
+                        $globalfunc = Get-ChildItem -Path "Function:\$($_.Name -replace 'Global:','')"
                         if ($GlobalFunc -ne $null) {
                             Write-Verbose "Plugin function exported into the global session: $($_.Name -replace 'Global:','')"
                             $globalfunc | Add-Member -MemberType 'NoteProperty' -Name 'ohmypsh' -Value "$Name" -Force
@@ -487,6 +544,29 @@ Function Add-OMPPlugin {
             if (-not ([string]::IsNullOrEmpty($errmsg))) {
                 $errmsg
                 Write-Warning "Unable to load plugin postload code for $Name"
+                Write-Warning "Error: $($errmsg | Select *)"
+                return
+            }
+
+            # Finally run any config plugin code
+            if ((Test-OMPProfileSetting -Name "pluginconfig_$Name") -and (-not $UpdateConfig)) {
+                $Config = Get-OMPProfileSetting -Name "pluginconfig_$Name"
+            }
+            else {
+                # If not already in the profile config add the plugin config variable
+                if (Test-OMPProfileSetting -Name "pluginconfig_$Name") {
+                    Set-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                }
+                else {
+                    Add-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                }
+            }
+            $errmsg = $null
+            $Configsb = [Scriptblock]::create(".{$Config}")
+            Invoke-Command -NoNewScope -ScriptBlock $Configsb -ErrorVariable errmsg 2>$null
+            if (-not ([string]::IsNullOrEmpty($errmsg))) {
+                $errmsg
+                Write-Warning "Unable to load plugin configuration code for $Name"
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }
@@ -1355,6 +1435,9 @@ Function Set-OMPTheme {
             if (-not ([string]::IsNullOrEmpty($errmsg))) {
                 throw "Unable to load theme file $ThemeScriptPath"
             }
+            else {
+                Set-OMPProfileSetting -Name 'Theme' -Value $Name
+            }
         }
         catch {
             throw "Unable to load theme file $ThemeScriptPath"
@@ -1520,7 +1603,7 @@ Function Test-OMPProfileSetting {
         [String]$Name
     )
     Process {
-        if (($Script:OMPProfile).Keys -contains $_ ) {
+        if (($Script:OMPProfile).Keys -contains $Name ) {
             $true
         }
         else {

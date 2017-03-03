@@ -81,10 +81,5 @@ Accept wildcard characters: False
 ## NOTES
 Author: Zachary Loeber
 
-
-
-Version History
-1.0.0 - Initial release
-
 ## RELATED LINKS
 

@@ -5,7 +5,7 @@ $PostLoad = {
         Write-Output "Setting initial module clean frequency settings to occur every 8 times the module is loaded"
         Add-OMPProfileSetting -Name 'ModuleAutoCleanFrequency' -Value 8
         $AutoCleanFreq = 8
-        Export-OMPProfile 
+        Export-OMPProfile
     }
 
     $AutoCleanFreq = Get-OMPProfileSetting -Name 'ModuleAutoCleanFrequency'
@@ -18,4 +18,8 @@ $PostLoad = {
         }
     }
 }
+$Config = {}
 $Shutdown = {}
+$Unload = {
+    Remove-OMPProfileSetting -Name 'ModuleAutoCleanFrequency'
+}

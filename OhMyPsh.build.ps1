@@ -12,9 +12,7 @@ $RequiredModules = @('PlatyPS')
 if  ($Script:BuildEnv['OptionAnalyzeCode']) {
     $RequiredModules += 'PSScriptAnalyzer'
 }
-if  ($Script:BuildEnv['OptionFormatCode'] ) {
-    $RequiredModules += 'FormatPowershellCode'
-}
+
 if  ($Script:BuildEnv['OptionUnitTestCode'] ) {
     $RequiredModules += 'Pester'
 }

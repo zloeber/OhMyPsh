@@ -6,20 +6,17 @@ Function Add-OMPPlugin {
         Dot sources a plugin
     .PARAMETER Name
         Name of the plugin
-    .PARAMETER Force   
+    .PARAMETER Force
         If the plugin is already loaded use this to force load it again.
     .PARAMETER NoProfileUpdate
         Skip updating the profile
+    .PARAMETER UpdateConfig
+        Force an update of the plugin configuration. If a config scriptblock is passed then that will be used as the update. Otherwise if a config scriptblock is found in the plugin that will be used instead.
     .EXAMPLE
         PS> Add-OMPPlugin -Name 'o365'
 
     .NOTES
         Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
     #>
     [CmdletBinding()]
 	param (
@@ -28,7 +25,9 @@ Function Add-OMPPlugin {
         [Parameter(Position = 1)]
         [switch]$Force,
         [Parameter(Position = 2)]
-        [switch]$NoProfileUpdate
+        [switch]$NoProfileUpdate,
+        [Parameter(Position = 3)]
+        [switch]$UpdateConfig
     )
 
     Begin {
@@ -68,7 +67,7 @@ Function Add-OMPPlugin {
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }
-            
+
             # Run preload plugin code
             $errmsg = $null
             $Preloadsb = [Scriptblock]::create(".{$Preload}")
@@ -78,7 +77,7 @@ Function Add-OMPPlugin {
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }
-            
+
             # Dot source any file in the plugin src directory of this plugin and track global functions
             $FullPluginSrcPath = Join-Path $PluginPath "$Name\src"
             Write-Verbose "Plugin $Name source file repo is $FullPluginSrcPath"
@@ -91,7 +90,7 @@ Function Add-OMPPlugin {
                 # Next look for any globally defined functions and tag them with a noteproperty to track
                 ([System.Management.Automation.Language.Parser]::ParseInput((Get-Content -Path $_.FullName -Raw), [ref]$null, [ref]$null)).FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $false) | Foreach-Object {
                     if (($_.Name).StartsWith('Global:')) {
-                        $globalfunc = Get-ChildItem -Path "Function:\$($_.Name -replace 'Global:','')" 
+                        $globalfunc = Get-ChildItem -Path "Function:\$($_.Name -replace 'Global:','')"
                         if ($GlobalFunc -ne $null) {
                             Write-Verbose "Plugin function exported into the global session: $($_.Name -replace 'Global:','')"
                             $globalfunc | Add-Member -MemberType 'NoteProperty' -Name 'ohmypsh' -Value "$Name" -Force
@@ -107,6 +106,29 @@ Function Add-OMPPlugin {
             if (-not ([string]::IsNullOrEmpty($errmsg))) {
                 $errmsg
                 Write-Warning "Unable to load plugin postload code for $Name"
+                Write-Warning "Error: $($errmsg | Select *)"
+                return
+            }
+
+            # Finally run any config plugin code
+            if ((Test-OMPProfileSetting -Name "pluginconfig_$Name") -and (-not $UpdateConfig)) {
+                $Config = Get-OMPProfileSetting -Name "pluginconfig_$Name"
+            }
+            else {
+                # If not already in the profile config add the plugin config variable
+                if (Test-OMPProfileSetting -Name "pluginconfig_$Name") {
+                    Set-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                }
+                else {
+                    Add-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                }
+            }
+            $errmsg = $null
+            $Configsb = [Scriptblock]::create(".{$Config}")
+            Invoke-Command -NoNewScope -ScriptBlock $Configsb -ErrorVariable errmsg 2>$null
+            if (-not ([string]::IsNullOrEmpty($errmsg))) {
+                $errmsg
+                Write-Warning "Unable to load plugin configuration code for $Name"
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }

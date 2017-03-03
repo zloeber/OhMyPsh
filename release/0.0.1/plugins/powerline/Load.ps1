@@ -1,5 +1,6 @@
 $PreLoad = {
     Import-OMPModule 'Powerline'
 }
-$PostLoad = {
-}
+$PostLoad = {}
+$Config = {}
+$Shutdown = {}

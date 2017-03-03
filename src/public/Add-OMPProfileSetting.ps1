@@ -6,7 +6,7 @@ Function Add-OMPProfileSetting {
         Adds a new setting to the user profile settings if they do not already exist. Afterwards the profile is automatically exported and saved.
     .PARAMETER Name
         Name of the setting
-    .PARAMETER Value   
+    .PARAMETER Value
         Value of the setting.
     .PARAMETER NoProfileUpdate
         Skip updating the profile
@@ -15,11 +15,6 @@ Function Add-OMPProfileSetting {
 
     .NOTES
         Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
     #>
     [CmdletBinding()]
 	param (

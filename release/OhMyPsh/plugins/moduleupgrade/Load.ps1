@@ -1,11 +1,10 @@
 $PreLoad = {}
-
 $PostLoad = {
     if (-not (Test-OMPProfileSetting -Name 'ModuleAutoUpgradeFrequency')) {
         Write-Output "Setting initial module upgrade frequency settings to occur every 7 times the module is loaded"
         Write-Output "Modify your json profile to change this frequency."
         Add-OMPProfileSetting -Name 'ModuleAutoUpgradeFrequency' -Value 7
-        Export-OMPProfile 
+        Export-OMPProfile
     }
 
     $AutoUpgradeFreq = Get-OMPProfileSetting -Name 'ModuleAutoUpgradeFrequency'
@@ -19,4 +18,8 @@ $PostLoad = {
         }
     }
 }
+$Config = {}
 $Shutdown = {}
+$UnLoad = {
+    Remove-OMPProfileSetting -Name 'ModuleAutoUpgradeFrequency'
+}

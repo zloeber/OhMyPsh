@@ -10,14 +10,14 @@
 #>
 $PreLoad = {
     <#
-        Load any requirements here. Any modules should be loaded via Import-OMPModule 
+        Load any requirements here. Any modules should be loaded via Import-OMPModule
         to ensure they adhere to the profile settings for module auto installation.
 
         Example:
             Import-OMPModule 'Posh-Git'
 
         You should put any functions you want exported in a separate ps1 file (of any name) in the src
-        directory. If you want the function to be available in the OhMyPsh session then you will need to 
+        directory. If you want the function to be available in the OhMyPsh session then you will need to
         create it in a global scope.
     #>
 }
@@ -40,6 +40,15 @@ $PostLoad = {
     #>
 }
 
+$Config = {
+    <#
+        This gets run after the PostLoad scriptblock. At first run it will be stored in
+        the profile path as the configuration to be used for this plugin moving forward.
+
+        The config scriptblock is a way to maintain plugin settings that persist through
+        an OhMyPsh upgrade.
+    #>
+}
 $Shutdown = {
     <#
         Put anything here you need to run if OhMyPsh is unloaded or the console session is killed.

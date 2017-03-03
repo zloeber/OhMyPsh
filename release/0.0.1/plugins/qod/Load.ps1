@@ -7,7 +7,7 @@ $PreLoad = {
     }
     $QuoteDir = Get-OMPProfileSetting -Name 'QuoteDirectory'
 }
-
+$Config = {}
 $PostLoad = {
     Write-Host ''
     Write-Host (Get-Quote -Path $QuoteDir)

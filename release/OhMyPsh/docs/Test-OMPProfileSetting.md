@@ -22,7 +22,7 @@ Check if a profile setting exists.
 
 ### -------------------------- EXAMPLE 1 --------------------------
 ```
-Test-OMPSetting -Name 'SomeSetting'
+Test-OMPProfileSetting -Name 'SomeSetting'
 ```
 
 If SomeSetting exists then $true is returned.
@@ -51,11 +51,6 @@ Accept wildcard characters: False
 
 ## NOTES
 Author: Zachary Loeber
-
-
-
-Version History
-1.0.0 - Initial release
 
 ## RELATED LINKS
 

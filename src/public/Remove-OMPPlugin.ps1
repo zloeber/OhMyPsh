@@ -6,7 +6,7 @@ Function Remove-OMPPlugin {
         Removes a loaded plugin
     .PARAMETER Name
         Name of the plugin
-    .PARAMETER Force   
+    .PARAMETER Force
         If the plugin is already loaded use this to force load it again.
     .PARAMETER NoProfileUpdate
         Skip updating the profile
@@ -16,10 +16,6 @@ Function Remove-OMPPlugin {
     .NOTES
         Author: Zachary Loeber
 
-
-
-        Version History
-        1.0.0 - Initial release
     #>
     [CmdletBinding()]
 	param (
@@ -41,7 +37,7 @@ Function Remove-OMPPlugin {
         if (($LoadedPlugins -contains $Name) -or $Force) {
             $Unload = $null
             $PluginPath = (Get-OMPPlugin | Where {$_.Name -eq $Name}).Path
-            $UnloadScript = Join-Path $PluginPath 'UnLoad.ps1'
+            $UnloadScript = Join-Path $PluginPath 'Load.ps1'
 
             if (Test-Path $UnloadScript) {
                 Write-Verbose "Executing plugin unload script: $UnloadScript"
@@ -54,7 +50,7 @@ Function Remove-OMPPlugin {
                     Write-Warning "Error: $($errmsg | Select *)"
                     throw
                 }
-            
+
                 # Run unload plugin code
                 $Unloadsb = [Scriptblock]::create(".{$Unload}")
                 Invoke-Command -NoNewScope -ScriptBlock $Unloadsb -ErrorVariable errmsg 2>$null

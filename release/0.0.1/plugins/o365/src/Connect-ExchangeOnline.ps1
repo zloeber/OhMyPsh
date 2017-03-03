@@ -1,9 +1,5 @@
 Function Global:Connect-ExchangeOnline {
     [CmdletBinding()]
-    Param (
-        [Parameter(HelpMessage = 'Connect with multi-factor authentication.')]
-        [switch]$MFA
-    )
     $proxysettings = New-PSSessionOption -ProxyAccessType IEConfig
     $upn = ([ADSISEARCHER]"samaccountname=$($env:USERNAME)").Findone().Properties.userprincipalname
     $creds = Get-Credential -UserName $upn -Message "Enter password for $upn"
@@ -18,7 +14,8 @@ Function Global:Connect-ExchangeOnline {
     If ( $AddPrefix ) {
         $ImportParam.Prefix = 'o365'
     }
-    Import-PSSession $session @ImportParam -AllowClobber
+
+    Import-Module (Import-PSSession $session @ImportParam -AllowClobber) -Global
     Write-Output "`n`n`nDon't forget to 'Remove-PSSession `$session' when you're done"
 
     # If the msonline module is available then ask if we want to load it as well

@@ -1,5 +1,9 @@
 $PreLoad = {
     Import-OMPModule 'Powerline'
 }
-$PostLoad = {
+$PostLoad = {}
+$Config = {}
+$Shutdown = {}
+$Unload = {
+    Remove-OMPModule -Name 'powerline' -PluginSafe
 }

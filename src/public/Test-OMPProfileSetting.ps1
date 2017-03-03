@@ -7,16 +7,11 @@ Function Test-OMPProfileSetting {
     .PARAMETER Name
         Name of the setting.
     .EXAMPLE
-        PS> Test-OMPSetting -Name 'SomeSetting'
+        PS> Test-OMPProfileSetting -Name 'SomeSetting'
 
         If SomeSetting exists then $true is returned. Otherwise $false is returned.
     .NOTES
         Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
     #>
     [CmdletBinding()]
 	param (
@@ -24,7 +19,7 @@ Function Test-OMPProfileSetting {
         [String]$Name
     )
     Process {
-        if (($Script:OMPProfile).Keys -contains $_ ) {
+        if (($Script:OMPProfile).Keys -contains $Name ) {
             $true
         }
         else {

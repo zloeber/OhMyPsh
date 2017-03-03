@@ -7,6 +7,7 @@ $PreLoad = {
     }
 }
 $PostLoad = {}
+$Config = {}
 $Shutdown = {
     Remove-OMPModule -Name 'VMware*' -PluginSafe
 }

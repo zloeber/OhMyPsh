@@ -1,3 +1,4 @@
 $PreLoad = {}
 $PostLoad = {}
+$Config = {}
 $Shutdown = {}

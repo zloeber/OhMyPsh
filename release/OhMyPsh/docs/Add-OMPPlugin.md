@@ -12,7 +12,7 @@ Dot sources a plugin
 ## SYNTAX
 
 ```
-Add-OMPPlugin [-Name] <String> [-Force] [-NoProfileUpdate]
+Add-OMPPlugin [-Name] <String> [-Force] [-NoProfileUpdate] [-UpdateConfig]
 ```
 
 ## DESCRIPTION
@@ -72,17 +72,29 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -UpdateConfig
+Force an update of the plugin configuration.
+If a config scriptblock is passed then that will be used as the update.
+Otherwise if a config scriptblock is found in the plugin that will be used instead.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: 
+
+Required: False
+Position: 4
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ## INPUTS
 
 ## OUTPUTS
 
 ## NOTES
 Author: Zachary Loeber
-
-
-
-Version History
-1.0.0 - Initial release
 
 ## RELATED LINKS
 

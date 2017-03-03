@@ -197,6 +197,14 @@
 <maml:uri /></dev:type>
 <dev:defaultValue>False</dev:defaultValue>
 </command:parameter>
+<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none"><maml:name>UpdateConfig</maml:name>
+<maml:Description><maml:para>Force an update of the plugin configuration. If a config scriptblock is passed then that will be used as the update. Otherwise if a config scriptblock is found in the plugin that will be used instead.
+</maml:para>
+</maml:Description>
+<dev:type><maml:name>SwitchParameter</maml:name>
+<maml:uri /></dev:type>
+<dev:defaultValue>False</dev:defaultValue>
+</command:parameter>
 </command:syntaxItem>
 </command:syntax>
 <command:parameters><command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none"><maml:name>Name</maml:name>
@@ -226,16 +234,19 @@
 <maml:uri /></dev:type>
 <dev:defaultValue>False</dev:defaultValue>
 </command:parameter>
+<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none"><maml:name>UpdateConfig</maml:name>
+<maml:Description><maml:para>Force an update of the plugin configuration. If a config scriptblock is passed then that will be used as the update. Otherwise if a config scriptblock is found in the plugin that will be used instead.
+</maml:para>
+</maml:Description>
+<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+<dev:type><maml:name>SwitchParameter</maml:name>
+<maml:uri /></dev:type>
+<dev:defaultValue>False</dev:defaultValue>
+</command:parameter>
 </command:parameters>
 <command:inputTypes></command:inputTypes>
 <command:returnValues></command:returnValues>
 <maml:alertSet><maml:alert><maml:para>Author: Zachary Loeber
-</maml:para>
-<maml:para>
-</maml:para>
-<maml:para>
-</maml:para>
-<maml:para>Version History 1.0.0 - Initial release
 </maml:para>
 </maml:alert>
 </maml:alertSet>
@@ -319,12 +330,6 @@
 <command:inputTypes></command:inputTypes>
 <command:returnValues></command:returnValues>
 <maml:alertSet><maml:alert><maml:para>Author: Zachary Loeber
-</maml:para>
-<maml:para>
-</maml:para>
-<maml:para>
-</maml:para>
-<maml:para>Version History 1.0.0 - Initial release
 </maml:para>
 </maml:alert>
 </maml:alertSet>
@@ -1832,16 +1837,10 @@
 <command:returnValues></command:returnValues>
 <maml:alertSet><maml:alert><maml:para>Author: Zachary Loeber
 </maml:para>
-<maml:para>
-</maml:para>
-<maml:para>
-</maml:para>
-<maml:para>Version History 1.0.0 - Initial release
-</maml:para>
 </maml:alert>
 </maml:alertSet>
 <command:examples><command:example><maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-<dev:code>Test-OMPSetting -Name 'SomeSetting'</dev:code>
+<dev:code>Test-OMPProfileSetting -Name 'SomeSetting'</dev:code>
 <dev:remarks><maml:para>If SomeSetting exists then $true is returned. Otherwise $false is returned.
 </maml:para>
 </dev:remarks>
