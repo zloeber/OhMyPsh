@@ -72,7 +72,47 @@ if (($Host.Name -eq 'PowerGUIScriptEditorHost') -or (($Host.Name -eq 'ConsoleHos
 }
 ```
 
+Here is my own profile if anyone is interested.
 
+```
+##  PS5 introduced PSReadLine, which chokes in non-console shells, so I snuff it.
+try {
+    $NOCONSOLE = $FALSE
+    [System.Console]::Clear()
+}
+catch {
+    $NOCONSOLE = $TRUE
+}
+
+##  Check SHIFT/CTRL state ASAP at startup so we can control verbosity and if OhMyPsh will be loaded
+Add-Type -Assembly PresentationCore, WindowsBase
+try {
+    $ForceVerbose = [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::LeftShift) -or [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::RightShift)
+    $LoadOhMyPsh = -not ([System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::LeftCtrl) -or [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::RightCtrl))
+}
+catch {
+    $ForceVerbose = $false
+    $LoadOhMyPsh = $true
+}
+
+## Set the profile directory first, so we can refer to it from now on.
+Set-Variable ProfileDir (Split-Path $MyInvocation.MyCommand.Path -Parent) -Scope Global -Option AllScope, Constant -ErrorAction SilentlyContinue
+
+if($ForceVerbose) {
+    $VerbosePreference = "Continue"
+}
+
+if (($Host.Name -eq 'ConsoleHost') -and
+    (-not $NOCONSOLE) -and
+    ($LoadOhMyPsh)) {
+    if (Get-Module OhMyPsh -ListAvailable) {
+        Import-Module OhMyPsh
+    }
+}
+
+## And finally, relax the code signing restriction so we can actually get work done
+Set-ExecutionPolicy RemoteSigned Process
+```
 
 ### Plugins
 
@@ -208,22 +248,29 @@ A plugin folder has the following structure:
 Plugins
 --PluginName (directory)
   --src (directory)
+    --SomeDirectory (directory)
     --SomeScript.ps1
   --Load.ps1
-  --UnLoad.ps1
-
 ```
 
-When a plugin loads it first checks the plugin folder for the Load.ps1 file which contains two scriptblock definitions; PreLoad and PostLoad. Preload occurs before files are dot sourced from the src directory, PostLoad occurs afterwards. When the plugin is unloaded then the Unload scriptblock is invoked from the Unload.ps1 file.
+A plugin Load.ps1 file consists of five distinct scriptblocks and a directory of optionally dot sourced files. The scriptblocks are as follows:
+1. PreLoad
+2. PostLoad
+3. Config
+4. Unload
+5. Shutdown
+
+When a plugin loads it first checks the plugin folder for the Load.ps1 file which contains the scriptblock definitions. Preload occurs before files are dot sourced from the src directory, PostLoad occurs afterwards. Then if a profile configuration for the plugin is defined it gets run (otherwise the default config scriptblock is run and added to the profile).  When the plugin is removed from a profile (via Remove-OMPPlugin) the Unload scriptblock is invoked. Finally, when the OhMyPsh module is unloaded then the Shutdown scriptblock is invoked.
 
 So, in order this occurs for each plugin:
 1. Invoke the Preload scriptblock
 2. Find and invoke every .ps1 file in the plugin src subdirectory
 3. Invoke the Postload scriptblock
-4. Optionally, if a plugin is unloaded the Unload scriptblock is invoked
-5. Optionally, if you close your powershell session or unload OhMyPsh the Shutdown scriptblock (in the Load.ps1 file) is invoked.
+4. Does a config scriptblock exist in the user's profile for the plugin? If so invoke it. If not invoke the default config scriptblock and save it to the user's profile.
+5. Optionally, if the plugin is removed via Remove-OMPPlugin the Unload scriptblock is invoked.
+6. Optionally, if you close your powershell session or unload OhMyPsh the Shutdown scriptblock (in the Load.ps1 file) is invoked.
 
-**NOTE:** it is important to be aware that all scriptblock code is run in the module context and so anything that you want to flow back to the user session must be scoped globally. This includes functions and aliases. currently only global functions that get brought into the global session will be tracked by OhMyPsh and automatically removed when the plugin or module are unloaded.
+**NOTE:** it is important to be aware that all scriptblock code is run in the module context and so anything that you want to flow back to the user session must be scoped globally. This includes functions and aliases. currently only global functions that get brought into the global session will be tracked by OhMyPsh and automatically removed when the plugin or module are unloaded. You can also import stand-alone functions that will get automatically converted to the global scope via Add-OMPPersonalFunction.
 
 ++EXAMPLE PLUGIN++ - Run some task every 5th time you load OhMyPsh
 

@@ -545,7 +545,7 @@ task BuildSessionCleanup {
         Write-Output "      Removing $($_) module (if loaded)."
         Remove-Module $_  -Erroraction Ignore
     }
-    Write-Output "      Removing $Script:BuildEnv['ModuleToBuild'] module  (if loaded)."
+    Write-Output "      Removing $($Script:BuildEnv['ModuleToBuild']) module  (if loaded)."
     Remove-Module $Script:BuildEnv['ModuleToBuild'] -Erroraction Ignore
 
     # Dot source any post build cleanup scripts.
