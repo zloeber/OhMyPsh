@@ -39,9 +39,14 @@ function Out-Default {
     process {
         try {
             # Our snazzy hook for colorizing the output...
-            if  ($Script:PSColorTypeMapKeys -contains ($_.pstypenames)[0]) {
-                .([scriptblock]::create($Script:PSColorTypeMap[$_.pstypenames[0]]))
-                $_ = $null
+            if ($_ -ne $null) {
+                if  ($Script:PSColorTypeMapKeys -contains ($_.pstypenames)[0]) {
+                    .([scriptblock]::create($Script:PSColorTypeMap[$_.pstypenames[0]]))
+                    $_ = $null
+                }
+                else {
+                    $steppablePipeline.Process($_)
+                }
             }
             else {
                 $steppablePipeline.Process($_)
@@ -56,7 +61,7 @@ function Out-Default {
             write-host ""
             $script:showHeader=$true
             $steppablePipeline.End()
-        } 
+        }
         catch {
             throw
         }
