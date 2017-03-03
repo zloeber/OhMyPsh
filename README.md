@@ -270,7 +270,9 @@ So, in order this occurs for each plugin:
 5. Optionally, if the plugin is removed via Remove-OMPPlugin the Unload scriptblock is invoked.
 6. Optionally, if you close your powershell session or unload OhMyPsh the Shutdown scriptblock (in the Load.ps1 file) is invoked.
 
-**NOTE:** it is important to be aware that all scriptblock code is run in the module context and so anything that you want to flow back to the user session must be scoped globally. This includes functions and aliases. currently only global functions that get brought into the global session will be tracked by OhMyPsh and automatically removed when the plugin or module are unloaded. You can also import stand-alone functions that will get automatically converted to the global scope via Add-OMPPersonalFunction.
+**NOTE:** When a plugin is 'added' to a profile a new profile configuration item is created if it doesn't already exist. This will be called `pluginconfig_<pluginname>` and will contain the 'Config' scriptblock contents. This is to allow for plugin upgrades that will not overwrite any custom settings you may want to keep. This setting does NOT get removed when you remove the plugin.
+
+**NOTE:** It is important to be aware that all scriptblock code is run in the module context and so anything that you want to flow back to the user session must be scoped globally. This includes functions and aliases. currently only global functions that get brought into the global session will be tracked by OhMyPsh and automatically removed when the plugin or module are unloaded. You can also import stand-alone functions that will get automatically converted to the global scope via Add-OMPPersonalFunction.
 
 ++EXAMPLE PLUGIN++ - Run some task every 5th time you load OhMyPsh
 
@@ -313,10 +315,11 @@ These get saved in your OhMyPsh profile as individual ps1 files that will automa
 Be careful as this was really meant for just function definitions in ps1 files. The whole ps1 file will get invoked no matter what you have in it though so use at your own discretion.
 
 You can add personal function files or entire directories of them with `Add-OMPPersonalFunction`
-### Profile Configuration
-A fairly sane default configuration is provided out of the box with this module. You can see all current settings with the following function:
 
 **NOTE: I'd be a poor example if I didn't say that grouping several similar functions into a module is the preferred method of script distribution over using OhMyPsh personal functions or plugins.**
+
+### Profile Configuration
+A fairly plain default configuration is provided out of the box with this module. You can see all current settings with the following function:
 
 ```
 Get-OMPProfileSetting
