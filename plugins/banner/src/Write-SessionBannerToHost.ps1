@@ -5,6 +5,7 @@
         [switch]$AttemptAutoFit
     )
     Begin {
+        # Retreive the current OS platform based on the existence of some known default variables in Powershell 6.
         function Get-OSPlatform {
             [CmdletBinding()]
             param(
@@ -52,6 +53,7 @@
         }
 
         function Get-PIIPAddress {
+            # Retreive IP address informaton from dot net core only functions (should run on both linux and windows properly)
             $NetworkInterfaces = @([System.Net.NetworkInformation.NetworkInterface]::GetAllNetworkInterfaces() | Where-Object {($_.OperationalStatus -eq 'Up')})
             $NetworkInterfaces | Foreach-Object {
                 $_.GetIPProperties() | Where-Object {$_.GatewayAddresses} | Foreach-Object {
@@ -70,6 +72,7 @@
         }
 
         function Get-PIUptime {
+            # Retreive platform independant uptime informaton (should run on both linux and windows properly)
             param(
                 [switch]$FromSleep
             )
@@ -98,12 +101,23 @@
             }
         }
 
-        function Get-ElevatedStatus {
-            if (([System.Environment]::OSVersion.Version.Major -gt 5) -and ((New-object Security.Principal.WindowsPrincipal ([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
-                return $true
-            }
-            else {
-                return $false
+        function Get-PIElevatedStatus {
+            # Platform independant function that returns true if you are running as an elevated account, false if not.
+            switch ( Get-OSPlatform -ErrorVariable null ) {
+                'Linux' {
+                    # Add me!
+                }
+                'OSX' {
+                    # Add me!
+                }
+                Default {
+                    if (([System.Environment]::OSVersion.Version.Major -gt 5) -and ((New-object Security.Principal.WindowsPrincipal ([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+                        return $true
+                    }
+                    else {
+                        return $false
+                    }
+                }
             }
         }
 
@@ -169,7 +183,7 @@
         
         $PSProcessElevated = 'TRUE'
         if ($OSPlatform -eq 'Windows') {
-            if (Get-ElevatedStatus) {
+            if (Get-PIElevatedStatus) {
                $PSProcessElevated = 'TRUE'
             }
             else {
