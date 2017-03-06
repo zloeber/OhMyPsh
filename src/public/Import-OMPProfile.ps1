@@ -37,7 +37,7 @@ Function Import-OMPProfile {
             ($Script:OMPProfile).$Key = $LoadedProfile.$Key
         }
     }
-    $MissingSettings = @($Script:OMPProfile.Keys | Where {$ProfileSettings -notcontains $_})
+    $MissingSettings = @($Script:OMPProfile.Keys | Where-Object {$ProfileSettings -notcontains $_})
     if ($MissingSettings.Count -gt 0) {
         Write-Verbose "There were $($MissingSettings.Count) settings missing from the saved profile. Re-exporting to bring profile up to date."
         try {

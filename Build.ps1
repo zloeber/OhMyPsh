@@ -68,6 +68,7 @@ are listed in the order they would be processed in were they all to be used at o
 
     GitPush - Not finished with this yet, sorry.
 '@
+
 function PrerequisitesLoaded {
     # Install InvokeBuild module if it doesn't already exist
     try {
