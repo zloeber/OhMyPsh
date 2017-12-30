@@ -1,117 +1,205 @@
 #Requires -Modules Pester
 
 <#
-    This pester test verifies the PowerShell module manifest file has valid content.
+    This pester test verifies the PowerShell module manifest file has valid content that will be required to 
+    upload to the PowerShell Gallary.
 
-    Example:
-    Invoke-Pester -Script @{Path = '.\src\tests\ModuleManifest.Tests.ps1'; Parameters = @{ ManifestPath = 'C:\Users\zloeber\Dropbox\Zach_Docs\Projects\Git\PSAD'; Author = 'Zachary Loeber'; Website = 'https://github.com/zloeber/PSAD'; Tags = @('ADSI', 'Active_Directory', 'DC') }}
+    .EXAMPLE
+    PS> Invoke-Pester -Script @{Path = '.\src\tests\ModuleManifest.Tests.ps1'; Parameters = @{ ManifestPath = 'C:\Users\zloeber\Dropbox\Zach_Docs\Projects\Git\PSAD'; Author = 'Zachary Loeber'; Website = 'https://github.com/zloeber/PSAD'; Tags = @('ADSI', 'Active_Directory', 'DC') }}
+
+    Runs some standard tests and a few manual validations (Tags, Author, and Website).
+    .EXAMPLE
+    PS> Invoke-Pester -Script @{Path = '.\src\tests\ModuleManifest.Tests.ps1'; Parameters = @{ ManifestPath = '.\PSAD.psd1'}}
+
+    Runs several generic tests against the PSAD.psd1 manifest to ensure all required values for uploading to the PowerShell Gallery simply exist.
 #>
 
-[CmdletBinding()]
+[CmdLetBinding(DefaultParameterSetName='Default')]
 Param(
-    [Parameter(HelpMessage = 'Path to the Root module directory')]
+    [Parameter(Mandatory = $True, ParameterSetName='Default')]
+    [Parameter(Mandatory = $True, ParameterSetName='Manual')]
+    [Parameter(Mandatory = $True, ParameterSetName='ModuleBuild')]
     [string]$ManifestPath,
-    [Parameter(HelpMessage = 'Author to validate')]
+    [Parameter(Mandatory = $True, ParameterSetName='ModuleBuild')]
+    [string]$ModuleBuildJSONPath,
+    [Parameter(ParameterSetName='Manual')]
     [string]$Author,
-    [Parameter(HelpMessage = 'Project website to validate')]
+    [Parameter(ParameterSetName='Manual')]
+    [string]$Copyright,
+    [Parameter(ParameterSetName='Manual')]
     [string]$Website,
-    [Parameter(HelpMessage = 'Project license URI to validate')]
-    [string]$LicenceURI,
-    [Parameter(HelpMessage = 'Tags to validate.')]
+    [Parameter(ParameterSetName='Manual')]
+    [string]$LicenseURI,
+    [Parameter(ParameterSetName='Manual')]
+    [string]$Version,
+    [Parameter(ParameterSetName='Manual')]
     [string[]]$Tags
 )
 
 if (($ManifestPath.EndsWith('psd1')) -and (Test-Path $ManifestPath)) {
-    $ModulePath = $ManifestPath
-}
-elseif ((-not [string]::IsNullOrEmpty($ManifestPath)) -and (Test-Path $ManifestPath)) {
-    $ModulePath = (Get-ChildItem -Path $ManifestPath -Filter '*.psd1' -File | Select-Object -First 1).FullName
-}
-elseif  ([string]::IsNullOrEmpty($ManifestPath)) {
-    # Otherwise we are running the test against the module found above the src\tests directory
-    $ModulePath = (Get-ChildItem -Path ..\..\ -Filter '*.psd1' -File | Select-Object -First 1).FullName
-}
-else {
-    $ModulePath = $ManifestPath
-}
+    # Grab the short module name
+    $ModuleName =  (Split-Path $ManifestPath -Leaf).Split('.')[0]
 
-# Grab the short module name
-$ModuleName =  (Split-Path $ManifestPath -Leaf).Split('.')[0]
+    Describe 'Module Manifest - Standard Tests' {
+        Context "Testing $ManifestPath" {
+            It 'should be a valid module manifest file' {
+                { 
+                    $Script:Manifest = Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop -WarningAction SilentlyContinue
+                } |  Should Not Throw
+            }
 
-# If no author or website are being passed to check against then assume we are using psmodulebuild variables
-if (([string]::IsNullOrEmpty($Author)) -or ([string]::IsNullOrEmpty($Website))) {
-    Get-ChildItem -Path ..\..\*.buildenvironment.ps1 | Select-Object -First 1 | Foreach-Object {
-        Write-Output "Dot sourcing build environment file $($_.FullName)"
-        . $_.FullName
+            It 'should have a valid RootModule value' {
+                $Script:Manifest.RootModule | Should Be "$ModuleName.psm1"
+            }
+
+            It 'should have a valid GUID' {
+                ($Script:Manifest.Guid).Guid | Should BeLike '????????-????-????-????-????????????'
+            }
+
+            It 'should have a valid PowerShellVersion value' {
+                $Script:Manifest.PowerShellVersion | Should Not BeNullOrEmpty
+            }
+        }
     }
-    $Author = $Script:BuildEnv['ModuleAuthor']
-    $Website = $Script:BuildEnv['ModuleWebsite']
-}
 
-Describe 'Module Manifest Content' {
-    Context "Testing $ModulePath" {
-        It 'should be a valid module manifest file' {
-            { 
-                $Script:Manifest = Test-ModuleManifest -Path $ModulePath -ErrorAction Stop -WarningAction SilentlyContinue
-            } |  Should Not Throw
+    switch ($PSCmdlet.ParameterSetName) {
+        'Default' {
+            # Passed just a module manifest file name with no other information to validate
+            # This will check for several entries that they simply exist.
+            Describe 'Module Manifest - Generic Tests' {
+                Context "Testing $ManifestPath" {
+                    It 'should have a valid Module version' {
+                        ($Script:Manifest.Version).ToString() -as [Version] | Should Not BeNullOrEmpty
+                    }
+
+                    It 'should have a valid module description' {
+                        $Script:Manifest.Description | Should Not BeNullOrEmpty
+                    }
+
+                    It 'should have a valid module author' {
+                        $Script:Manifest.Author | Should Not BeNullOrEmpty
+                    }
+
+                    It 'should have a valid module project website' {
+                        $Script:Manifest.ProjectUri.OriginalString | Should Not BeNullOrEmpty
+                    }
+
+                    It 'should have a valid license URL' {
+                        $Script:Manifest.LicenseUri | Should Not BeNullOrEmpty
+                    }
+
+                    It 'should have some tags' {
+                        @($Script:Manifest.PrivateData.PSData.Tags).Count -gt 0 | Should Be $true
+                    }
+                }
+            }
         }
+        'Manual' {
+            # Passed a manifest name and several manual entries to validate
+            Describe 'Module Manifest - Manual Tests' {
+                Context "Testing $ManifestPath" {
+                    if (-not [string]::IsNullOrEmpty($Version)) {
+                        It "should be module version '$Version'" {
+                            ($Script:Manifest.Version).ToString() -as [Version] | Should Be $Version
+                        }
+                    }
+                    if (-not [string]::IsNullOrEmpty($Description)) {
+                        It "should have a module description of '$Description'" {  
+                            $Script:Manifest.Description | Should Be $Description
+                        }
+                    }
 
-        It 'should have a valid rootmodule value' {
-            $Script:Manifest.RootModule | Should BeExactly "$ModuleName.psm1"
+                    if (-not [string]::IsNullOrEmpty($Author)) {
+                        It "should have the module author of '$Author'" {
+                            $Script:Manifest.Author | Should Be $Author
+                        }
+                    }
+                    
+                    if (-not [string]::IsNullOrEmpty($Copyright)) {
+                        It "should have a Copyright of '$Copyright'" {
+                            $Script:Manifest.Copyright | Should Be $Copyright
+                        }
+                    }
+                    
+                    if (-not [string]::IsNullOrEmpty($Website)) {
+                        It "should have the project website of '$Website'" {
+                            $Script:Manifest.ProjectUri.OriginalString | Should Be $Website
+                        }
+                    }
+
+                    if (-not [string]::IsNullOrEmpty($LicenseURI)) {
+                        It "should have the license URI of '$LicenseURI'" {
+                            $Script:Manifest.LicenseUri  | Should Be $LicenseURI
+                        }
+                    }
+                    if ($Tags.Count -gt 0) {
+                        It "should have these tags: $($Tags -join ',')" {
+                            Compare-Object $Script:Manifest.PrivateData.PSData.Tags $Tags | Should Be $Null
+                        }
+                    }
+                }
+            }
         }
-
-        It 'should have a valid version' {
-            $Script:Manifest.Version -as [Version] | Should Not BeNullOrEmpty
-        }
-
-        It 'should have a valid description' {
-            $Script:Manifest.Description | Should Not BeNullOrEmpty
-        }
-
-        It 'should have a valid GUID' {
-            $Script:Manifest.Guid | Should BeLike '????????-????-????-????-????????????'
-        }
-
-        It 'should have a valid author' {
-            $Script:Manifest.Author | Should BeExactly $Author
-        }
-
-        It 'should have a Copyright value' {
-            $Script:Manifest.Copyright | Should Not BeNullOrEmpty
-        }
-
-        It 'should have a valid PowerShellVersion value' {
-            $Script:Manifest.PowerShellVersion | Should Not BeNullOrEmpty
-        }
-               It 'should have a valid project website' {
-            # Act
-            $actual = $Script:Manifest.PrivateData
-
-            # Assert
-            $actual.PSData.ProjectUri | Should BeExactly $Website
-        }
-
-        It 'should have a valid license URL' {
-            # Arrange
-            if ($LicenceURI) {
-                $expectLicenseUri = $LicenceURI
+        'ModuleBuild' {
+            # Passed a manifest name and a ModuleBuild json configuration file to validate
+            if (($ModuleBuildJSONPath.EndsWith('psd1')) -and (Test-Path $ModuleBuildJSONPath)) {
+                try {
+                    $ModuleInfo = get-content $ModuleBuildJSONPath | ConvertFrom-Json
+                }
+                catch {
+                    throw "$ModuleBuildJSONPath either does not exist or is not a json file!"
+                }
             }
             else {
-                $expectLicenseUri = "$Website/master/LICENSE.md"
+                throw "$ModuleBuildJSONPath either does not exist or is not a json file!"
             }
+            # Passed a manifest name and several manual entries to validate
+            Describe 'Module Manifest - ModuleBuild Tests' {
+                Context "Testing $ManifestPath" {
+                    if (-not [string]::IsNullOrEmpty($Version)) {
+                        It "should be module version '$Version'" {
+                            ($Script:Manifest.Version).ToString() -as [Version] | Should Be $ModuleInfo.ModuleVersion
+                        }
+                    }
+                    if (-not [string]::IsNullOrEmpty($Description)) {
+                        It "should have a module description of '$Description'" {  
+                            $Script:Manifest.Description | Should Be $ModuleInfo.ModuleDescription
+                        }
+                    }
 
-            $Script:Manifest.LicenseUri | Should BeExactly $expectLicenseUri
-        }
+                    if (-not [string]::IsNullOrEmpty($Author)) {
+                        It "should have the module author of '$Author'" {
+                            $Script:Manifest.Author | Should Be $ModuleInfo.ModuleAuthor
+                        }
+                    }
+                    
+                    if (-not [string]::IsNullOrEmpty($Copyright)) {
+                        It "should have a Copyright of '$Copyright'" {
+                            $Script:Manifest.Copyright | Should Be $ModuleInfo.ModuleCopyright
+                        }
+                    }
+                    
+                    if (-not [string]::IsNullOrEmpty($Website)) {
+                        It "should have the project website of '$Website'" {
+                            $Script:Manifest.ProjectUri.OriginalString | Should Be $ModuleInfo.ModuleWebsite
+                        }
+                    }
 
-        if ($Tags.count -gt 0) {
-            It "should have these tags: $($Tags -join ',')" {
-                Compare-Object $Script:Manifest.Tags $Tags | Should Be $Null
-            }
-        }
-        else {
-            It 'should have some tags' {
-                @($Script:Manifest.Tags).Count -gt 0 | Should Be $true
+                    if (-not [string]::IsNullOrEmpty($LicenseURI)) {
+                        It "should have the license URI of '$LicenseURI'" {
+                            $Script:Manifest.LicenseUri  | Should Be $ModuleInfo.ModuleLicenseURI
+                        }
+                    }
+                    if ($Tags.Count -gt 0) {
+                        It "should have these tags: $($ModuleInfo.ModuleTags -join ',')" {
+                            Compare-Object $Script:Manifest.PrivateData.PSData.Tags $ModuleInfo.ModuleTags | Should Be $Null
+                        }
+                    }
+                }
             }
         }
     }
+}
+else {
+    Write-Error "$ManifestPath was not found!"
 }

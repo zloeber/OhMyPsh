@@ -12,14 +12,10 @@ Function Add-OMPAutoLoadModule {
         PS> Add-OMPAutoLoadModule -Name 'posh-git'
 
         Adds posh-git to the list of modules that will be loaded with OhMyPsh for this user.
-
     .NOTES
         Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    .LINK
+        https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (
@@ -30,7 +26,7 @@ Function Add-OMPAutoLoadModule {
     )
     try {
         Import-OMPModule -Name $Name
-        $Script:OMPProfile['AutoLoadModule'] = @($Script:OMPProfile['AutoLoadModule'] + $Name | Sort-Object -Unique)
+        $Script:OMPProfile['AutoLoadModules'] = @($Script:OMPProfile['AutoLoadModules'] + $Name | Sort-Object -Unique)
         if (-not $NoProfileUpdate) {
             Export-OMPProfile
         }

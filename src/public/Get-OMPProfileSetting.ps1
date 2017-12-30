@@ -1,17 +1,19 @@
 Function Get-OMPProfileSetting {
     <#
     .SYNOPSIS
-        Get one or all of the OMP settings.
+    Get one or all of the OMP settings.
     .DESCRIPTION
-        Get one or all of the OMP settings.
+    Get one or all of the OMP settings.
     .PARAMETER Name
-        Name of the setting
+    Name of the setting
     .EXAMPLE
-        PS> Get-OMPSetting -Name 'SomeSetting'
+    PS> Get-OMPSetting -Name 'SomeSetting'
 
-        Shows the value of SomeSetting
+    Shows the value of SomeSetting
     .NOTES
-        Author: Zachary Loeber
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (
@@ -21,7 +23,7 @@ Function Get-OMPProfileSetting {
         })]
         [String]$Name
     )
-    Process {
+    process {
         if ([string]::IsNullOrEmpty($Name)) {
             $Script:OMPProfile
         }

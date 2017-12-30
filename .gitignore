@@ -4,7 +4,7 @@ temp/
 # PSGallery publishing file can contain personal API key and paths and thus we want to ignore it if it exists
 .psgallery
 
-# The persistent build environment xml/json files can contain API keys or other information you may not want to share
+# The persistent build environment xml files can contain API keys or other information you may not want to share
 *.buildenvironment.xml
 *.buildenvironment.json
 

@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Adds fzf and a wrapper for it, PSfzf, to your session. This allows for fuzzy logic searching of history among other things.",
+    "Name":  "fzf",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

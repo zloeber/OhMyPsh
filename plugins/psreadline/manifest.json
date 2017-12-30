@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Customize psreadline for your session. This affects autocomplete behavior, command history, and more.",
+    "Name":  "psreadline",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

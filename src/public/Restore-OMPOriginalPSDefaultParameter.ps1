@@ -1,22 +1,18 @@
 Function Restore-OMPOriginalPSDefaultParameter {
     <#
     .SYNOPSIS
-        Restores the original powershell PSDefaultParameters variable.
+    Restores the original powershell PSDefaultParameters variable.
     .DESCRIPTION
-        Restores the original powershell PSDefaultParameters variable.
+    Restores the original powershell PSDefaultParameters variable.
     .EXAMPLE
-        PS> Restore-OMPOriginalPSParameterDefault
-
+    Restore-OMPOriginalPSParameterDefault
     .NOTES
-        Author: Zachary Loeber
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param ()
-    Write-Output 'Restoring original PSDefaultParameters variable'
+    Write-Verbose 'Restoring original PSDefaultParameters variable'
     $Global:PSDefaultParameterValues = $Script:HostState['PSDefaultParameterValues'].Clone()
-
 }

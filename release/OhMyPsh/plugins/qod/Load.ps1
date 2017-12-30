@@ -9,8 +9,10 @@ $PreLoad = {
 }
 $Config = {}
 $PostLoad = {
-    Write-Host ''
-    Write-Host (Get-Quote -Path $QuoteDir)
+    if ($Host.Name -eq 'ConsoleHost') {
+        Write-Host ''
+        Write-Host (Get-Quote -Path $QuoteDir)
+    }
 }
 $Shutdown = {}
 $Unload = {

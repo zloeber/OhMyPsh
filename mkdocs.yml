@@ -1,0 +1,65 @@
+﻿use_directory_urls: false
+site_author: Zachary Loeber
+copyright: OhMyPsh is licensed under <a href='https://github.com/zloeber/OhMyPsh/blob/master/License.md'>this</a> license
+theme: readthedocs
+site_name: OhMyPsh Docs
+pages:
+- Acknowledgements: Acknowledgements.md
+- ChangeLog: ChangeLog.md
+- Contributing: Contributing.md
+- Index: Index.md
+- RELEASENOTES: RELEASENOTES.md
+- Functions:
+  - Add-OMPAutoLoadModule: Functions/Add-OMPAutoLoadModule.md
+  - Add-OMPPersonalFunction: Functions/Add-OMPPersonalFunction.md
+  - Add-OMPPlugin: Functions/Add-OMPPlugin.md
+  - Add-OMPProfileSetting: Functions/Add-OMPProfileSetting.md
+  - Export-OMPProfile: Functions/Export-OMPProfile.md
+  - Get-Get-OMPGitStatus: Functions/Get-Get-OMPGitStatus.md
+  - Get-OMPGitBranchName: Functions/Get-OMPGitBranchName.md
+  - Get-OMPGitStatus: Functions/Get-OMPGitStatus.md
+  - Get-OMPHostState: Functions/Get-OMPHostState.md
+  - Get-OMPIPAddress: Functions/Get-OMPIPAddress.md
+  - Get-OMPLoadedFunction: Functions/Get-OMPLoadedFunction.md
+  - GET-OMPOSPlatform: Functions/GET-OMPOSPlatform.md
+  - Get-OMPPlugin: Functions/Get-OMPPlugin.md
+  - Get-OMPProfilePath: Functions/Get-OMPProfilePath.md
+  - Get-OMPProfileSetting: Functions/Get-OMPProfileSetting.md
+  - Get-OMPPromptColor: Functions/Get-OMPPromptColor.md
+  - Get-OMPPSColor: Functions/Get-OMPPSColor.md
+  - Get-OMPSystemUpTime: Functions/Get-OMPSystemUpTime.md
+  - Get-OMPTheme: Functions/Get-OMPTheme.md
+  - Import-OMPModule: Functions/Import-OMPModule.md
+  - Import-OMPProfile: Functions/Import-OMPProfile.md
+  - Invoke-OMPPluginShutdown: Functions/Invoke-OMPPluginShutdown.md
+  - New-OMPPlugin: Functions/New-OMPPlugin.md
+  - New-OMPPluginManifest: Functions/New-OMPPluginManifest.md
+  - Optimize-OMPProfile: Functions/Optimize-OMPProfile.md
+  - Remove-OMPAutoLoadModule: Functions/Remove-OMPAutoLoadModule.md
+  - Remove-OMPModule: Functions/Remove-OMPModule.md
+  - Remove-OMPPersonalFunction: Functions/Remove-OMPPersonalFunction.md
+  - Remove-OMPPlugin: Functions/Remove-OMPPlugin.md
+  - Remove-OMPProfileSetting: Functions/Remove-OMPProfileSetting.md
+  - Reset-OMPConsoleOverride: Functions/Reset-OMPConsoleOverride.md
+  - Restore-OMPConsoleColor: Functions/Restore-OMPConsoleColor.md
+  - Restore-OMPConsolePrompt: Functions/Restore-OMPConsolePrompt.md
+  - Restore-OMPConsoleTitle: Functions/Restore-OMPConsoleTitle.md
+  - Restore-OMPOriginalAlias: Functions/Restore-OMPOriginalAlias.md
+  - Restore-OMPOriginalConsole: Functions/Restore-OMPOriginalConsole.md
+  - Restore-OMPOriginalPrompt: Functions/Restore-OMPOriginalPrompt.md
+  - Restore-OMPOriginalPSDefaultParameter: Functions/Restore-OMPOriginalPSDefaultParameter.md
+  - Restore-OMPOriginalTabCompletion: Functions/Restore-OMPOriginalTabCompletion.md
+  - Restore-OMPPSReadline: Functions/Restore-OMPPSReadline.md
+  - Set-OMPConsoleColor: Functions/Set-OMPConsoleColor.md
+  - Set-OMPProfileSetting: Functions/Set-OMPProfileSetting.md
+  - Set-OMPTheme: Functions/Set-OMPTheme.md
+  - Set-OMPWindowTitle: Functions/Set-OMPWindowTitle.md
+  - Show-OMPHelp: Functions/Show-OMPHelp.md
+  - Show-OMPStatus: Functions/Show-OMPStatus.md
+  - Test-OMPConsoleHasANSI: Functions/Test-OMPConsoleHasANSI.md
+  - Test-OMPInAGitRepo: Functions/Test-OMPInAGitRepo.md
+  - Test-OMPIsElevated: Functions/Test-OMPIsElevated.md
+  - Test-OMPProfileSetting: Functions/Test-OMPProfileSetting.md
+  - Write-OMPGitStatus: Functions/Write-OMPGitStatus.md
+repo_url: https://github.com/zloeber/OhMyPsh
+

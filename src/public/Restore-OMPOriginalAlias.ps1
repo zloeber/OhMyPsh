@@ -1,19 +1,15 @@
 Function Restore-OMPOriginalAlias {
     <#
     .SYNOPSIS
-        Restores original aliases that are backed up when this module initially loads.
+    Restores original aliases that are backed up when this module initially loads.
     .DESCRIPTION
-        Restores original aliases that are backed up when this module initially loads.
-
+    Restores original aliases that are backed up when this module initially loads.
     .EXAMPLE
-        PS> Restore-OMPOriginalAlias
-
+    Restore-OMPOriginalAlias
     .NOTES
-        Author: Zachary Loeber
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param ()
@@ -23,7 +19,7 @@ Function Restore-OMPOriginalAlias {
     if ((Test-Path $Path)) {
         Write-Output ''
         Write-Output "Original aliases stored in $Path"
-        Write-Output "To restore these into your session run the following: "
+        Write-Output 'To restore these into your session run the following: '
         Write-Output ''
         Write-Output ". $Path"
         Write-Output ''

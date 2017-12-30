@@ -1,10 +1,12 @@
 # OhMyPsh
 
-A PowerShell 5.0 console utility that uses a simple json configuration file to manage plugins, theming, module autoloading, module upgrading, module cleanup, and other chores so that you can be more productive in the shell.
+A PowerShell 5.0 console utility that uses a simple json configuration file to manage turn your PowerShell profile into a plugin-capable, themed, module autoloading, function repo storing experience. OhMyPsh is meant to make you and your teams more productive in the shell.
 
 ## Introduction
 
-I've tested out several custom PowerShell console modules and each had great features but none really met all my needs. In response to this I smashed up several projects in an effort to make a worthy customizable PowerShell experience. I've found that the results have been worth my time, I hope you do as well!
+I've tested out several custom PowerShell console modules and each had great features but none really met all my needs. In response to this I smashed up several projects in an effort to make a worthy customizable PowerShell experience. The result is OhMyPsh (the name is an obvious reference to the venerable Oh-my-zsh shell wrapper for zsh in Linux land).
+
+The short description of what this module does is that OhMyPsh allows for a far more dynamic PowerShell profile. It allows you to source in functions from anywhere automatically that can easily be removed from your session. It can apply and revert console or Powershell host settings or be used as an ad hoc scheduler to run scripts ever nth session (or any other logic you can script out for that matter).
 
 ## Installation
 
@@ -67,47 +69,52 @@ notepad.exe $Profile
 
 Add the following at the end....
 ```
-if (($Host.Name -eq 'PowerGUIScriptEditorHost') -or (($Host.Name -eq 'ConsoleHost') -and (-not $NOCONSOLE))) {
-    Import-Module OhMyPsh
-}
-```
-
-Here is my own profile if anyone is interested.
-
-```
-##  PS5 introduced PSReadLine, which chokes in non-console shells, so I snuff it.
-try {
-    $NOCONSOLE = $FALSE
-    [System.Console]::Clear()
-}
-catch {
-    $NOCONSOLE = $TRUE
-}
-
-##  Check SHIFT/CTRL state ASAP at startup so we can control verbosity and if OhMyPsh will be loaded
-Add-Type -Assembly PresentationCore, WindowsBase
-try {
-    $ForceVerbose = [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::LeftShift) -or [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::RightShift)
-    $LoadOhMyPsh = -not ([System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::LeftCtrl) -or [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::RightCtrl))
-}
-catch {
-    $ForceVerbose = $false
-    $LoadOhMyPsh = $true
-}
-
-## Set the profile directory first, so we can refer to it from now on.
-Set-Variable ProfileDir (Split-Path $MyInvocation.MyCommand.Path -Parent) -Scope Global -Option AllScope, Constant -ErrorAction SilentlyContinue
-
-if($ForceVerbose) {
-    $VerbosePreference = "Continue"
-}
-
-if (($Host.Name -eq 'ConsoleHost') -and
-    (-not $NOCONSOLE) -and
-    ($LoadOhMyPsh)) {
+if ($Host.Name -eq 'ConsoleHost') {
     if (Get-Module OhMyPsh -ListAvailable) {
         Import-Module OhMyPsh
     }
+}
+```
+
+Here is my own profile if anyone is interested. I basically do the same thing but add a few extras for troubleshooting profile issues. I try to remove all extras that may get autopopulated from things like chocolatey or git in favor of using OhMyPsh plugins instead.
+
+```
+## Detect if we are running powershell without a console.
+$_ISCONSOLE = $TRUE
+try {
+    [System.Console]::Clear()
+}
+catch {
+    $_ISCONSOLE = $FALSE
+}
+
+# Everything in this block is only relevant in a console. This keeps nonconsole based powershell sessions clean.
+if ($_ISCONSOLE) {
+    ##  Check SHIFT state ASAP at startup so we can use that to control verbosity :)
+    try {
+	Add-Type -Assembly PresentationCore, WindowsBase
+        if ([System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::LeftShift) -or [System.Windows.Input.Keyboard]::IsKeyDown([System.Windows.Input.Key]::RightShift)) {
+            $VerbosePreference = "Continue"
+        }
+    }
+    catch {
+        # Maybe this is a non-windows host?
+    }
+
+    ## Set the profile directory variable for possible use later
+    Set-Variable ProfileDir (Split-Path $MyInvocation.MyCommand.Path -Parent) -Scope Global -Option AllScope, Constant -ErrorAction SilentlyContinue
+
+    # Start OhMyPsh only if we are in a console
+    if ($Host.Name -eq 'ConsoleHost') {
+        if (Get-Module OhMyPsh -ListAvailable) {
+            Import-Module OhMyPsh
+        }
+    }
+<# Chocolatey profile
+Removed, we can control chocolatey tab completion with the OhMyPsh chocolatey plugin instead.
+#>
+
+
 }
 
 ## And finally, relax the code signing restriction so we can actually get work done
@@ -143,10 +150,10 @@ vmware            False
 ```
 
 #### Builtin Plugins
-I've packaged up several useful (or sometimes just amusing) plugins as examples of what this module can do with nominal effort. A good portion of these are mostly a mini-collection of functions that could also be modules if you wanted to go that route. Here is a description of each of them.
+Arguably, plugins are what make OhMyPsh neat. I've packaged up several useful (or sometimes just amusing) plugins as examples of what this module can do with nominal effort. A good portion of these are mostly a mini-collection of functions that could also be modules if you wanted to go that route. But some of these really can enhance your PowerShell console session experience. Here is a description of some of them.
 
 ##### PSReadline
-I'm listing this one first for a reason. Several other plugins and features simply don't exist without this module running. As PowerShell 5.0 loads this module by default in every session this plugin doesn't really serve to ensure that the module is loaded (though it does do that as well) but rather acts as a holding place for psreadline customizations you want applied across the board.
+I'm listing this one first for a reason. Several other plugins and features simply don't exist without this module running. PowerShell 5.0 loads psreadline by default in every new PowerShell session. This plugin doesn't really serve to ensure that the module is loaded (though it does do that as well) but rather acts as a holding place for psreadline customizations you want applied across the board.
 
 This plugin also puts logic around loading prior session history into new sessions (the default is 50 items).
 
@@ -181,9 +188,21 @@ Uptime (system resume): 0 days / 1 hours / 56 minutes
 
 This is just a small group of console related functions that get imported into your OhMyPsh session.
 
-##### FileUtils
+#### chocolatey
 
-Like consoleui, this is just a handful of useful file utility functions. View these with `Get-OMPLoadedFunction`
+This takes the bits of code that the chocolately installer rudely crams at the end of your powershell profile and turns it into a managed plugin. This essentially gives the choco command tab completion.
+
+##### Conemu
+
+Adds a function for installing a conemu theme to the current conemu.xml file. At first load this plugin will use git to clone a repo of themes from https://github.com/joonro/ConEmu-Color-Themes.git. Every time this plugin loads it will automatically check for updates and download them transparently. To add a theme to conemu (Windows only of course) run the imported function
+
+`Install-ConemuTheme -Operation:Add -Theme:<tab complete>`
+
+or
+
+`Install-ConemuTheme -Operation:Remove -Theme:<Tab complete>`
+
+If tab complete doesn't work then you may need to manually supply the path to your conemu config xml file with -ConfigPath.
 
 ##### Fzf
 
@@ -210,24 +229,13 @@ This will prompt you for automatic upgrade of 'old' modules on your system. This
 
 ModuleAutoUpgradeFrequency - Default is every 7 times OhMyPsh is loaded.
 
-**NOTE**: the underlying function isn't heavily optimized and can take a while to process!
-
-##### Net
-Another small plugin with networ related helper functions and aliases you may find useful. View these with `Get-OMPLoadedFunction`
+**NOTE**: The underlying function isn't heavily optimized and can take a while to process!
 
 ##### o365
-Another small plugin with several o365 functions and aliases you may find useful. View these with `Get-OMPLoadedFunction`
-
-##### Powerline
-An extremely powerful console prompt customization module. This plugin is a place you might put customizations for this module. This plugin is also required for the cool powerline theme included with OhMyPsh.
-
-Note: I've yet to work out a module unload dependancy error when unloading this plugin but it is pretty harmless so I've left it in the first release of this project.
+Another small plugin with several o365 functions and aliases you may find useful for connecting to s4b online, exchange online, exchange on premise, and with or without MFA. This one plugin is what spurred the entire OhMyPsh project as I wanted my team to have the funtions at their disposal in any session. View the imported functions with `Get-OMPLoadedFunction` after the plugin has been added.
 
 ##### PSDefaultParams
 This is an example of how you might use OhMyPsh to muck with your setting in a fairly safe manner. It will load several useful PSDefaultParameters settings like popping out a help window when using get-help and autosizing Format-Table output.
-
-##### PSGit
-After much deliberation I decided to get behind PSGit instead of posh-git as PSGit seems more PowerShell oriented and doesn't screw with your prompt or powershell profile when you load it.
 
 ##### QOD
 Displays a quote of the day. Nuff said.
@@ -238,7 +246,7 @@ This parses a simple txt file which can be updated or moved. The file location i
 Imports the vagrant-status module functions into your session. Can be used for custom prompts if so desired.
 
 ##### VMware
-Imports the VMware module if it exists. As the vmware module likes to be a bastard and change your prompt this plugin will load the module then change it right back the way you had it. Take that you prompt hijacker! I tend to add and remove this plugin as required to do my job.
+Imports the VMware module if it exists. As the vmware module likes to be a bastard and change your prompt this plugin will load the module then change it right back the way you had it. Take that you prompt hijacker! I tend to add and remove this plugin as required to do my job as the vmware PowerCLI module is pretty large.
 
 #### Plugin Logic
 Plugins reside in a directory of the same name as the plugin itself. There can be multiple root paths that are searched for plugins but, by default, the plugins folder within the module is used. If you want to add additional plugin paths (or change the existing one) you can modify the OMPPluginRootPaths profile setting (Set-OMPProfileSetting).
@@ -262,7 +270,7 @@ A plugin Load.ps1 file consists of five distinct scriptblocks and a directory of
 
 When a plugin loads it first checks the plugin folder for the Load.ps1 file which contains the scriptblock definitions. Preload occurs before files are dot sourced from the src directory, PostLoad occurs afterwards. Then if a profile configuration for the plugin is defined it gets run (otherwise the default config scriptblock is run and added to the profile).  When the plugin is removed from a profile (via Remove-OMPPlugin) the Unload scriptblock is invoked. Finally, when the OhMyPsh module is unloaded then the Shutdown scriptblock is invoked.
 
-So, in order this occurs for each plugin:
+So, in order, this occurs for each plugin:
 1. Invoke the Preload scriptblock
 2. Find and invoke every .ps1 file in the plugin src subdirectory
 3. Invoke the Postload scriptblock
@@ -279,6 +287,7 @@ So, in order this occurs for each plugin:
 Perhaps you need your ego stroked a bit so you you decide to tell yourself how great you are every five times you load OhMyPsh. Easy stuff, first create your template plugin:
 
 New-OMPPlugin -Name 'egoboost'
+New-OMPPluginManifest -Name 'egoboost' -Description 'Remind me every 5th session how great I am'
 
 Next update the returned plugin.ps1 file path with the following code:
 
@@ -308,7 +317,7 @@ Get-OMPLoadedFunction
 ```
 
 ### Dot Sourced Personal Functions
-Rather than have to change a function you wrote just to work as a plugin (defining with a global scope) you can simply add it directly to be dot sourced in OhMyPsh. There are still some restrictions around how to do this though. Generally a fully formed left-justified function (using the actual function definition) within a ps1 file will be detected and automatically loaded into the global scope. As with plugins, these functions will get 'tracked' by OhMyPsh via a simple notepropery on the object so it can be later removed when OhMyPsh is unloaded.
+Rather than have to change a function you wrote just to work as a plugin (defining with a global scope) you can simply add it directly to be dot sourced in OhMyPsh. There are still some restrictions around how to do this though. Generally a fully formed left-justified function (using the actual function definition) within a ps1 file will be detected and automatically loaded into the global scope. As with plugins, these functions will get 'tracked' by OhMyPsh via a simple notepropery on the function object so it can be later removed when OhMyPsh is unloaded.
 
 These get saved in your OhMyPsh profile as individual ps1 files that will automatically get loaded the next time you start OhMyPsh (and get removed when OhMyPsh is unloaded).
 
@@ -316,7 +325,7 @@ Be careful as this was really meant for just function definitions in ps1 files. 
 
 You can add personal function files or entire directories of them with `Add-OMPPersonalFunction`
 
-**NOTE: I'd be a poor example if I didn't say that grouping several similar functions into a module is the preferred method of script distribution over using OhMyPsh personal functions or plugins.**
+**NOTE: I'd be a poor example if I didn't say that grouping several similar functions into a module is the preferred method of script distribution over using OhMyPsh personal functions or plugins. But sometimes you just have a mix of one off functions you need to always have loaded and available. This module allows you to do so in an unloadable manner.**
 
 ### Profile Configuration
 A fairly plain default configuration is provided out of the box with this module. You can see all current settings with the following function:
@@ -347,44 +356,22 @@ Set-OMPTheme -Name:norm
 ```
 
 ### PSColor Customization
-I've absorbed the PSColor module functionality into this project and turned it into a plugin. All this really does is colorize output of a few commands based on the primary typename they spit out. These commands are:
-- Get-OMPPLugin (I added this as a small example of how to add your own type)
-- Get-Service
-- Get-ChildItem
-- Select-String (ie. gci .\ -Recurse -filter '*.ps1' | Select-string 'OhMyPsh')
-
-Without the plugin you get nothing, so first add it to your profile:
-```
-Add-OMPPlugin pscolor
-```
-You can see all the definitions and types that get matched for this with the following:
-
-```
-Get-OMPColorAction | Select *
-```
-
-You are free to expand upon this output colorization using these examples and `Add-OMPColorAction`
-
-You can also change the default colors used by updating the PSColor module hash (Get-OMPPSColor/Set-OMPPSColor)
+** This has been removed in favor of dynamically loaded format type files created with ezout. **
 
 ### Some Known Issues
 There are several areas of improvement that can be made:
 - Probably should autoremove plugins from a profile if they fail to load
 - Add script-signing support and validation
-- Add module dependancy checking when unloading loaded modules
-- Safer input validation of input to pscolor
+- Add plugin dependancy checking when unloading plugins.
+- ~~Safer input validation of input to pscolor~~
 - ~~Turn pscolor into a plugin instead of being integrated.~~
-- I started a module variable for storing prompt colors that probably should be eliminated in favor of psreadline variables or anything else (Get-OMPPromptColor/Set-OMPPromptColor). This is used in the highly-stylized 'jaykul' theme.
+- ~~I started a module variable for storing prompt colors that probably should be eliminated in favor of psreadline variables or anything else (Get-OMPPromptColor/Set-OMPPromptColor). This is used in the highly-stylized 'jaykul' theme.~~
 - I should have some Pester tests for plugin authoring purposes (among other things)
 - Figure out a way to get original aliases reimported when the module unloads. For now a script is created and message is displayed on how to re-import yourself if required.
 - So much more I'm guessing :)
 
 ### Further Information
-The entire module is pure powershell and is hosted on github for your convenience. https://www.github.com/zloeber/OhMyPsh
-
-## Versions
-
-0.0.1 - Initial Release
+The entire module is pure powershell and is hosted on github for your convenience. https://www.github.com/zloeber/OhMyPsh. Note that there is some embedded C# code in one function and maybe more in other plugins but this is pretty rare.
 
 ## Contribute
 
@@ -415,3 +402,4 @@ Import-Module .\OhMyPsh.psm1 -ArgumentList '.\'
 - [Powerline](https://github.com/Jaykul/PowerLine)
 - [PSGit](https://github.com/PoshCode/PSGit)
 - [PSfzf](https://github.com/kelleyma49/PSFzf)
+- Many others that should be attributed in various functions or plugins

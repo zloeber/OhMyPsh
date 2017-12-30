@@ -1,48 +1,89 @@
 Function Add-OMPPlugin {
     <#
     .SYNOPSIS
-        Dot sources a plugin
+    Dot sources a plugin
     .DESCRIPTION
-        Dot sources a plugin
-    .PARAMETER Name
-        Name of the plugin
+    Dot sources a plugin and enables it for your profile.
     .PARAMETER Force
-        If the plugin is already loaded use this to force load it again.
+    If the plugin is already loaded use this to force load it again.
     .PARAMETER NoProfileUpdate
-        Skip updating the profile
+    Skip updating the profile
     .PARAMETER UpdateConfig
-        Force an update of the plugin configuration. If a config scriptblock is passed then that will be used as the update. Otherwise if a config scriptblock is found in the plugin that will be used instead.
+    Force an update of the plugin configuration. If a config scriptblock is passed then that will be used as the update. Otherwise if a config scriptblock is found in the plugin that will be used instead. This is an advanced parameter that should rarely need to be used.
+    .PARAMETER DebugOutput
+    Show some additional output for debugging purposes.
     .EXAMPLE
-        PS> Add-OMPPlugin -Name 'o365'
+    PS> Add-OMPPlugin -Name 'o365'
 
+    .EXAMPLE
+    PS> 'chocolatey','o365' | Add-OMPPlugin
     .NOTES
-        Author: Zachary Loeber
+    Author: Zachary Loeber
+    .LINK
+    https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
-        [string]$Name,
-        [Parameter(Position = 1)]
+        [Parameter()]
         [switch]$Force,
-        [Parameter(Position = 2)]
+        [Parameter()]
         [switch]$NoProfileUpdate,
-        [Parameter(Position = 3)]
-        [switch]$UpdateConfig
+        [Parameter()]
+        [switch]$UpdateConfig,
+        [Parameter()]
+        [switch]$DebugOutput
     )
+    dynamicparam {
+        # Create dictionary
+        $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+        $ValidPlugins = @()
 
-    Begin {
-        Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
-        #$Verbosity = $PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent
-        Write-Verbose "Attempting to load the plugin $Name"
+        Foreach ($PPath in $Script:OMPProfile['OMPPluginRootPaths']) {
+            $ValidPlugins += (Get-ChildItem $PPath -Directory).Name
+        }
+
+        $ValidPlugins = $ValidPlugins | Sort-Object | Select-Object -Unique
+
+        $NewParamSettings = @{
+            Name = 'Name'
+            Position = 0
+            Type = 'string'
+            ValidateSet = $ValidPlugins
+            HelpMessage = "The plugin to add to your profile and optionally load."
+            ValueFromPipeline = $true
+            ValueFromPipelineByPropertyName = $true
+        }
+
+        # Add new dynamic parameter to dictionary
+        New-DynamicParameter @NewParamSettings -Dictionary $DynamicParameters
+
+        # Return dictionary with dynamic parameters
+        $DynamicParameters
+    }
+    begin {
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
     }
 
     Process {
+        # Pull in the dynamic parameters first
+        New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
+        $PluginPath = $null
         Foreach ($PPath in $Script:OMPProfile['OMPPluginRootPaths']) {
             if (Test-Path (Join-Path $PPath $Name)) {
-                $PluginPath = $PPath
+                if ($null -eq $PluginPath) {
+                    Write-Verbose "$($FunctionName): Loading the plugin found in $PPath"
+                    $PluginPath = $PPath
+                }
+                else {
+                    Write-Warning "$($FunctionName): More than one root plugin folder paths contain the plugin named $Name, ignoring the plugin found in $PPath"
+                }
             }
         }
-        if ($PluginPath -eq $null) {
+        if ($null -eq $PluginPath) {
             Write-Warning "Unable to locate $Name in any plugin paths!"
             return
         }
@@ -62,20 +103,24 @@ Function Add-OMPPlugin {
             $errmsg = $null
             $sb = [Scriptblock]::create(".{$(Get-Content -Path $LoadScript -Raw)}")
             Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg))) {
+            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $DebugOutput) {
                 Write-Warning "Unable to load plugin $Name"
                 Write-Warning "Error: $($errmsg | Select *)"
-                return
+                if (-not $Force) {
+                    return
+                }
             }
 
             # Run preload plugin code
             $errmsg = $null
             $Preloadsb = [Scriptblock]::create(".{$Preload}")
             Invoke-Command -NoNewScope -ScriptBlock $Preloadsb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg))) {
+            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
                 Write-Warning "Unable to load plugin preload code for $Name"
                 Write-Warning "Error: $($errmsg | Select *)"
-                return
+                if (-not $Force) {
+                    return
+                }
             }
 
             # Dot source any file in the plugin src directory of this plugin and track global functions
@@ -103,11 +148,13 @@ Function Add-OMPPlugin {
             $errmsg = $null
             $Postloadsb = [Scriptblock]::create(".{$Postload}")
             Invoke-Command -NoNewScope -ScriptBlock $Postloadsb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg))) {
+            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
                 $errmsg
                 Write-Warning "Unable to load plugin postload code for $Name"
                 Write-Warning "Error: $($errmsg | Select *)"
-                return
+                if (-not $Force) {
+                    return
+                }
             }
 
             # Finally run any config plugin code
@@ -126,11 +173,13 @@ Function Add-OMPPlugin {
             $errmsg = $null
             $Configsb = [Scriptblock]::create(".{$Config}")
             Invoke-Command -NoNewScope -ScriptBlock $Configsb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg))) {
+            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
                 $errmsg
                 Write-Warning "Unable to load plugin configuration code for $Name"
                 Write-Warning "Error: $($errmsg | Select *)"
-                return
+                if (-not $Force) {
+                    return
+                }
             }
 
             # If we made it this far then update our loaded plugins list

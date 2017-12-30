@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Loads the vmware PowerCLI module.",
+    "Name":  "vmware",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

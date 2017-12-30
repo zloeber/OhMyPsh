@@ -1,6 +1,13 @@
-$PreLoad = {}
+$PreLoad = {
+    $Global:OMPConsoleHasANSI = Test-OMPConsoleHasANSI
+    if ($OMPConsoleHasANSI) {
+        Import-OMPModule Pansies
+    }
+}
 $PostLoad = {
-    Write-SessionBannerToHost
+    if ($Host.Name -eq 'ConsoleHost') {
+        Write-SessionBannerToHost
+    }
 }
 $Config = {}
 $Shutdown = {}

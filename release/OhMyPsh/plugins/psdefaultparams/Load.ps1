@@ -13,7 +13,7 @@ $Config = {
     $Global:PSDefaultParameterValues.Add("Update-Help:ErrorAction","SilentlyContinue")
     $Global:PSDefaultParameterValues.Add("Test-Connection:Quiet",$True)
     $Global:PSDefaultParameterValues.Add("Test-Connection:Count","1")
-    $Global:PSDefaultParameterValues.Add('Get-Help:ShowWindow',$true)
+    #$Global:PSDefaultParameterValues.Add('Get-Help:ShowWindow',$true) # Uncomment to always have a pop-up window for help
 }
 $Shutdown = {
     Restore-OMPOriginalPSDefaultParameter

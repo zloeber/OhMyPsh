@@ -19,13 +19,9 @@ else {
 }
 
 $OMPProfileExportFile = Join-Path $UserProfilePath '.OhMyPsh.config.json'
-$OMPAliasExportFile =
+$IsConEmuConsole = if ($null -ne $env:ConEmuANSI) {$true} else {$false}
 
-if (-not $Script:ModulePath) {
-    $ModulePath = Split-Path $script:MyInvocation.MyCommand.Path
-}
-
-# Backup some basic host settings
+# Backup some basic host settings. these never get updated and are used for restore purposes.
 $Script:HostState = @{
     Title = $Host.UI.RawUI.WindowTitle
     Background = $Host.UI.RawUI.BackgroundColor
@@ -35,6 +31,7 @@ $Script:HostState = @{
     TabExpansion2 = $function:TabExpansion2
     PSDefaultParameterValues =  $Global:PSDefaultParameterValues.Clone()
     Aliases = Join-Path $UserProfilePath '.OhMyPsh.aliasbackup.ps1'
+    Modules = (Get-Module).Name
     Colors = @{
         BackgroundColor = $Host.UI.RawUI.BackgroundColor
         ForegroundColor = $Host.UI.RawUI.ForegroundColor
@@ -51,16 +48,16 @@ $Script:HostState = @{
     }
 }
 
+if (get-module psreadline) {
+    $Script:PSReadlineState = Get-PSReadlineOption
+}
+else {
+    $Script:PSReadlineState = $null
+}
+
+if (-not $Script:ModulePath) {
+    $ModulePath = Split-Path $script:MyInvocation.MyCommand.Path
+}
+
 # Backup original aliases
 Get-Alias | Where {($_.Options -split ',') -notcontains 'ReadOnly'} | Export-Alias -Path $Script:HostState['Aliases'] -As Script -Force
-
-$Script:OMPConsole = @{
-    WindowsTitlePrefix = $null
-    WindowsTitlePostfix = $null
-}
-$Script:PromptColors = @{
-    PromptForeground = [ConsoleColor]::Yellow
-    ErrorForeground = [ConsoleColor]::DarkRed
-    ErrorBackground = [ConsoleColor]::Black
-    PromptBackground =  [ConsoleColor]::Black
-}

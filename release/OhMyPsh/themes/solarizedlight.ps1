@@ -1,16 +1,13 @@
-# Host Foreground
-$Host.PrivateData.ErrorForegroundColor = 'Red'
-$Host.PrivateData.WarningForegroundColor = 'Yellow'
-$Host.PrivateData.DebugForegroundColor = 'Green'
-$Host.PrivateData.VerboseForegroundColor = 'Blue'
-$Host.PrivateData.ProgressForegroundColor = 'Gray'
-
-# Host Background
-$Host.PrivateData.ErrorBackgroundColor = 'Gray'
-$Host.PrivateData.WarningBackgroundColor = 'Gray'
-$Host.PrivateData.DebugBackgroundColor = 'Gray'
-$Host.PrivateData.VerboseBackgroundColor = 'Gray'
-$Host.PrivateData.ProgressBackgroundColor = 'Cyan'
+Set-OMPConsoleColor -ErrorForegroundColor 'Red' `
+    -WarningForegroundColor 'Yellow' `
+    -DebugForegroundColor 'Green' `
+    -VerboseForegroundColor 'Blue' `
+    -ProgressForegroundColor 'Gray' `
+    -ErrorBackgroundColor 'Gray' `
+    -WarningBackgroundColor 'Gray' `
+    -DebugBackgroundColor 'Gray' `
+    -VerboseBackgroundColor 'Gray' `
+    -ProgressBackgroundColor 'Cyan'
 
 # Check for PSReadline
 if (Get-Module -ListAvailable -Name "PSReadline") {

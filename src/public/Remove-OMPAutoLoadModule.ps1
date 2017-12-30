@@ -1,25 +1,22 @@
 Function Remove-OMPAutoLoadModule {
     <#
     .SYNOPSIS
-        Removes a module to be autoloaded when OMP starts up.
+    Removes a module to be autoloaded when OMP starts up.
     .DESCRIPTION
-        Removes a module to be autoloaded when OMP starts up.
+    Removes a module to be autoloaded when OMP starts up.
     .PARAMETER Name
-        Name of the module
+    Name of the module
     .PARAMETER NoProfileUpdate
-        Skip updating the profile
+    Skip updating the profile
     .EXAMPLE
-        PS> Remove-OMPAutoLoadModule -Name 'posh-git'
+    PS> Remove-OMPAutoLoadModule -Name 'posh-git'
 
-        Removes posh-git from the list of modules that will be loaded when OhMyPsh starts.
+    Removes posh-git from the list of modules that will be loaded when OhMyPsh starts.
 
     .NOTES
-        Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (
@@ -29,13 +26,13 @@ Function Remove-OMPAutoLoadModule {
         [switch]$NoProfileUpdate
     )
     try {
-        Remove-OMPModule -Name $Name
+        Remove-OMPModule -Name $Name -ErrorAction:SilentlyContinue
         $Script:OMPProfile['AutoLoadModules'] = @($Script:OMPProfile['AutoLoadModules'] | Where-Object {$_ -ne $Name} | Sort-Object -Unique)
         if (-not $NoProfileUpdate) {
             Export-OMPProfile
         }
     }
     catch {
-        throw "Unable to add module $($Name)"
+        # Do nothing
     }
 }

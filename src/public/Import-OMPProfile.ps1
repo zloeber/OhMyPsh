@@ -1,17 +1,19 @@
 Function Import-OMPProfile {
     <#
     .SYNOPSIS
-        Loads a user profile.
+    Loads a user profile.
     .DESCRIPTION
-        Loads a user profile.
+    Loads a user profile.
     .PARAMETER Path
-        Path to the user module profile settings.
+    Path to the user module profile settings.
     .EXAMPLE
-        PS> Import-OMPProfile -Path C:\temp\.OhMyPsh.profile.json
+    PS> Import-OMPProfile -Path C:\temp\.OhMyPsh.profile.json
 
-        Loads the profile from C:\temp\.OhMyPsh.profile.json into the module settings
+    Loads the profile from C:\temp\.OhMyPsh.profile.json into the module settings
     .NOTES
-        Author: Zachary Loeber
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
     Param (

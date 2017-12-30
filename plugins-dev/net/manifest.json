@@ -1,0 +1,5 @@
+﻿{
+    "Description":  "Adds Get-NetworkStatistics and Get-IPs to your session.",
+    "Name":  "net",
+    "Version":  "0.0.1"
+}

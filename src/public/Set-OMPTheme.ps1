@@ -1,53 +1,115 @@
 Function Set-OMPTheme {
     <#
     .SYNOPSIS
-        Sets the theme.
+    Sets the theme.
     .DESCRIPTION
-        Sets the theme.
+    Sets the theme.
     .PARAMETER Name
-        Name of the Theme
+    Name of the Theme
     .PARAMETER NoProfileUpdate
-        Skip updating the profile
+    Skip updating the profile
+    .PARAMETER Force
+    Force update the profile regardless of errors returned when loading a theme.
     .EXAMPLE
-        PS> Set-OMPTheme -Name 'base'
+    PS> Set-OMPTheme -Name 'base'
     .NOTES
-        Author: Zachary Loeber
+    Author: Zachary Loeber
+    .LINK
+    https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (
-        [Parameter(Position = 0)]
-        [String]$Name = $Script:OMPProfile['Theme'],
-        [Parameter(Position = 1)]
-        [switch]$NoProfileUpdate
+        [Parameter()]
+        [switch]$NoProfileUpdate,
+        [Parameter()]
+        [switch]$Force
     )
-    $Verbosity = if ($PSCmdlet.MyInvocation.BoundParameters['Verbose'].IsPresent) {' -Verbose'} else {''}
-    if ([string]::IsNullOrEmpty($Name)) {
-        Write-Output "No theme specified, restoring the original PowerShell prompt"
-        Restore-OMPOriginalPrompt
-        return
+
+    dynamicparam {
+        # Create dictionary
+        $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+        $ThemesPath = Join-Path $Script:ModulePath "themes"
+        $ValidThemes = @(Get-ChildItem -Path $ThemesPath -File -Filter '*.ps1').BaseName
+        $NewParamSettings = @{
+            Name = 'Name'
+            Position = 0
+            Type = 'string'
+            ValidateSet = $ValidThemes
+            HelpMessage = 'The theme to load. Will be applied immediately'
+            ValueFromPipeline = $true
+            ValueFromPipelineByPropertyName = $true
+        }
+        if ($null -ne $Script:OMPProfile['Theme']) {
+            $NewParamSettings.ParameterDefaultValue = $Script:OMPProfile['Theme']
+        }
+
+        # Add new dynamic parameter to dictionary
+        New-DynamicParameter @NewParamSettings -Dictionary $DynamicParameters
+
+        # Return dictionary with dynamic parameters
+        $DynamicParameters
     }
-    $ThemeScriptPath = (Join-Path $Script:ModulePath "themes\$Name.ps1")
-    if (Test-Path $ThemeScriptPath) {
-        Write-Verbose "Loading theme file: $ThemeScriptPath"
-        $script = (Get-Content $ThemeScriptPath -Raw)
+    begin {
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
+        $errmsg = $null
+    }
+
+    Process {
         try {
-            $sb = [Scriptblock]::create(".{$script}")
-            Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg))) {
-                throw "Unable to load theme file $ThemeScriptPath"
+            if ($null -ne $PSBoundParameters) {
+                # Pull in the dynamic parameters first
+                New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
+            }
+        }
+        catch {}
+
+        if ([string]::IsNullOrEmpty($Name)) {
+            Write-Output 'No theme specified, restoring the original PowerShell prompt and removing current theme'
+            Restore-OMPConsolePrompt
+            Restore-OMPConsoleTitle
+            Restore-OMPConsoleColor
+        }
+        else {
+            $ThemeScriptPath = (Join-Path $Script:ModulePath "themes\$Name.ps1")
+            if (Test-Path $ThemeScriptPath) {
+                Restore-OMPConsolePrompt
+                Restore-OMPConsoleTitle
+                Restore-OMPConsoleColor
+                Write-Verbose "Loading theme file: $ThemeScriptPath"
+                $script = (Get-Content $ThemeScriptPath -Raw)
+                try {
+                    $sb = [Scriptblock]::create(".{$script}")
+                    Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
+                    if (-not ([string]::IsNullOrEmpty($errmsg))) {
+                        Write-Warning "Errors occurred loading $ThemeScriptPath. Errors returned were $errmsg"
+                        if ($Force) {
+                            Write-Warning "Forcing the OhMyPsh profile to update with the theme regardless of errors returned during processing!"
+                            Set-OMPProfileSetting -Name 'Theme' -Value $Name
+                        }
+                    }
+                    else {
+                        Set-OMPProfileSetting -Name 'Theme' -Value $Name
+                    }
+                }
+                catch {
+                    Write-Warning "Unable to load theme file $ThemeScriptPath"
+                    Write-Warning "Errors reported - $errmsg"
+                }
             }
             else {
-                Set-OMPProfileSetting -Name 'Theme' -Value $Name
+                Throw "Theme with the name $Name was not found (somehow)!"
             }
         }
-        catch {
-            throw "Unable to load theme file $ThemeScriptPath"
-        }
+
         if (-not $NoProfileUpdate) {
             $Script:OMPProfile['Theme'] = $Name
+            Export-OMPProfile
         }
-    }
-    else {
-        Throw "Theme with the name $Name was not found!"
+
+        Write-Verbose "$($FunctionName): End."
     }
 }

@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Adds here, Reset-Module, and Split-HereString to your session.",
+    "Name":  "helpers",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

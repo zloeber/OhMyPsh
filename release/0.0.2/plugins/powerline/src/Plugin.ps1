@@ -1,1 +1,0 @@
-# customize git prompt display settings

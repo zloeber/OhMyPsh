@@ -1,84 +1,110 @@
 Function Remove-OMPPlugin {
     <#
     .SYNOPSIS
-        Removes a loaded plugin
+    Removes a loaded plugin
     .DESCRIPTION
-        Removes a loaded plugin
-    .PARAMETER Name
-        Name of the plugin
-    .PARAMETER Force
-        If the plugin is already loaded use this to force load it again.
+    Removes a loaded plugin
     .PARAMETER NoProfileUpdate
-        Skip updating the profile
+    Skip updating the profile
+    .PARAMETER Force
+    Attempt to remove a plugin that doesn't show as being loaded
     .EXAMPLE
-        PS> Remove-OMPPlugin -Name 'o365'
-
+    Remove-OMPPlugin -Name o365
     .NOTES
-        Author: Zachary Loeber
-
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
-        [string]$Name,
-        [Parameter(Position = 1)]
+        [Parameter()]
         [switch]$Force,
-        [Parameter(Position = 2)]
+        [Parameter()]
         [switch]$NoProfileUpdate
     )
+    dynamicparam {
+        # Create dictionary
+        $DynamicParameters = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
 
-    Begin {
-        Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
-        Write-Verbose "Attempting to load the plugin $Name"
+        $NewParamSettings = @{
+            Name = 'Name'
+            Position = 0
+            Type = 'string'
+            HelpMessage = 'The plugin to remove.'
+            ValueFromPipeline = $true
+            ValueFromPipelineByPropertyName = $true
+        }
+        $NewParamSettings.ValidateSet = @($Script:OMPState['PluginsLoaded'])
+        if ((@($Script:OMPState['PluginsLoaded']).Count -gt 0) -and (-not $force)) {
+            $NewParamSettings.ValidateSet = (Get-OMPProfileSetting).Plugins
+        }
+
+        # Add new dynamic parameter to dictionary
+        New-DynamicParameter @NewParamSettings -Dictionary $DynamicParameters
+
+        # Return dictionary with dynamic parameters
+        $DynamicParameters
     }
+    begin {
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
+    }
+    process {
+        # Pull in the dynamic parameters first
+        New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
 
-    Process {
         $LoadedPlugins = $Script:OMPState['PluginsLoaded']
-        if (($LoadedPlugins -contains $Name) -or $Force) {
-            $Unload = $null
-            $PluginPath = (Get-OMPPlugin | Where {$_.Name -eq $Name}).Path
-            $UnloadScript = Join-Path $PluginPath 'Load.ps1'
 
-            if (Test-Path $UnloadScript) {
-                Write-Verbose "Executing plugin unload script: $UnloadScript"
+        if (-not [string]::IsNullOrEmpty($Name)) {
+            if ((@($Script:OMPState['PluginsLoaded']) -contains $Name) -or $Force) {
+                $Unload = $null
+                $PluginPath = (Get-OMPPlugin | Where {$_.Name -eq $Name}).Path
+                $UnloadScript = Join-Path $PluginPath 'Load.ps1'
 
-                # pull in the unload definition
-                $sb = [Scriptblock]::create(".{$(Get-Content -Path $UnloadScript -Raw)}")
-                Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
-                if (-not ([string]::IsNullOrEmpty($errmsg))) {
-                    Write-Warning "Unable to unload plugin - $Name"
-                    Write-Warning "Error: $($errmsg | Select *)"
-                    throw
+                if (Test-Path $UnloadScript) {
+                    Write-Verbose "Executing plugin unload script: $UnloadScript"
+
+                    # pull in the unload definition
+                    $sb = [Scriptblock]::create(".{$(Get-Content -Path $UnloadScript -Raw)}")
+                    Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
+                    if (-not ([string]::IsNullOrEmpty($errmsg))) {
+                        Write-Warning "Unable to unload plugin - $Name"
+                        Write-Warning "Error: $($errmsg | Select *)"
+                        throw
+                    }
+
+                    # Run unload plugin code
+                    $Unloadsb = [Scriptblock]::create(".{$Unload}")
+                    Invoke-Command -NoNewScope -ScriptBlock $Unloadsb -ErrorVariable errmsg 2>$null
+                    if (-not ([string]::IsNullOrEmpty($errmsg))) {
+                        Write-Warning "Unable to unload plugin - $Name"
+                        Write-Warning "Error: $($errmsg | Select *)"
+                        throw
+                    }
+                }
+                else {
+                    Write-Verbose "No unload file found for plugin - $Name"
                 }
 
-                # Run unload plugin code
-                $Unloadsb = [Scriptblock]::create(".{$Unload}")
-                Invoke-Command -NoNewScope -ScriptBlock $Unloadsb -ErrorVariable errmsg 2>$null
-                if (-not ([string]::IsNullOrEmpty($errmsg))) {
-                    Write-Warning "Unable to unload plugin - $Name"
-                    Write-Warning "Error: $($errmsg | Select *)"
-                    throw
+                # If we made it this far then update our loaded plugins list to remove the plugin
+                $Script:OMPState['PluginsLoaded'] = @($LoadedPlugins | Where-Object {$_ -ne $Name} | Sort-Object -Unique)
+
+                if (-not $NoProfileUpdate) {
+                    try {
+                        $Script:OMPProfile['Plugins'] = @($Script:OMPProfile['Plugins'] | Where-Object {$_ -ne $Name} | Sort-Object -Unique)
+                        Export-OMPProfile
+                    }
+                    catch {
+                        throw "Unable to update or save the profile!"
+                    }
                 }
             }
             else {
-                Write-Verbose "No unload file found for plugin - $Name"
+                Write-Output "$Name is not loaded in this session. Use the -Force parameter to try to unload it regardless."
             }
-
-            # If we made it this far then update our loaded plugins list to remove the plugin
-            $Script:OMPState['PluginsLoaded'] = @($LoadedPlugins | Where-Object {$_ -ne $Name} | Sort-Object -Unique)
-
-            if (-not $NoProfileUpdate) {
-                try {
-                    $Script:OMPProfile['Plugins'] = @($Script:OMPProfile['Plugins'] | Where-Object {$_ -ne $Name} | Sort-Object -Unique)
-                    Export-OMPProfile
-                }
-                catch {
-                    throw "Unable to update or save the profile!"
-                }
-            }
-        }
-        else {
-            Write-Output "$Name is not loaded in this session. Use the -Force parameter to try to unload it regardless."
         }
     }
 }

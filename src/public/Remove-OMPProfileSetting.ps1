@@ -1,22 +1,20 @@
 Function Remove-OMPProfileSetting {
     <#
     .SYNOPSIS
-        Removes a custom profile setting that is not one of the core settings. Afterwards the profile is automatically exported and saved.
+    Removes a custom profile setting that is not one of the core settings. Afterwards the profile is automatically exported and saved.
     .DESCRIPTION
-        Removes a custom profile setting that is not one of the core settings. Afterwards the profile is automatically exported and saved.
+    Removes a custom profile setting that is not one of the core settings. Afterwards the profile is automatically exported and saved.
     .PARAMETER Name
-        Name of the setting
+    Name of the setting
     .PARAMETER NoProfileUpdate
-        Skip updating the profile
+    Skip updating the profile
     .EXAMPLE
-        PS> Remove-OMPProfileSetting -Name 'CustomSetting'
+    PS> Remove-OMPProfileSetting -Name 'CustomSetting'
 
     .NOTES
-        Author: Zachary Loeber
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (

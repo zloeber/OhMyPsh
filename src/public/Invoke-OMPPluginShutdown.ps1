@@ -1,21 +1,18 @@
 Function Invoke-OMPPluginShutdown {
     <#
     .SYNOPSIS
-        Runs the shutdown code for a loaded plugin.
+    Runs the shutdown code for a loaded plugin.
     .DESCRIPTION
-        Runs the shutdown code for a loaded plugin.
+    Runs the shutdown code for a loaded plugin.
     .PARAMETER Name
-        Name of the plugin
+    Name of the plugin
     .EXAMPLE
-        PS> Invoke-OMPPluginShutdown -Name 'o365'
+    PS> Invoke-OMPPluginShutdown -Name 'o365'
 
     .NOTES
-        Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (
@@ -36,7 +33,7 @@ Function Invoke-OMPPluginShutdown {
                 Write-Error "Unable to find the plugin load file: $LoadScript"
                 return
             }
-            
+
             Write-Verbose "Executing plugin load script: $LoadScript"
             # pull in the entire load script
             $errmsg = $null
@@ -47,7 +44,7 @@ Function Invoke-OMPPluginShutdown {
                 Write-Warning "Error: $($errmsg | Select *)"
                 return
             }
-            
+
             # Run shutdown plugin code
             $errmsg = $null
             if ($Shutdown -ne $null) {

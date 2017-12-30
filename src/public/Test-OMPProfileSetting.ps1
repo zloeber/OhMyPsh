@@ -12,6 +12,8 @@ Function Test-OMPProfileSetting {
         If SomeSetting exists then $true is returned. Otherwise $false is returned.
     .NOTES
         Author: Zachary Loeber
+    .LINK
+        https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (

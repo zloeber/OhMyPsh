@@ -1,20 +1,22 @@
 Function Add-OMPProfileSetting {
     <#
     .SYNOPSIS
-        Adds a new setting to the user profile settings if they do not already exist. Afterwards the profile is automatically exported and saved.
+    Adds a new setting to the user profile settings if they do not already exist. Afterwards the profile is automatically exported and saved.
     .DESCRIPTION
-        Adds a new setting to the user profile settings if they do not already exist. Afterwards the profile is automatically exported and saved.
+    Adds a new setting to the user profile settings if they do not already exist. Afterwards the profile is automatically exported and saved.
     .PARAMETER Name
-        Name of the setting
+    Name of the setting
     .PARAMETER Value
-        Value of the setting.
+    Value of the setting.
     .PARAMETER NoProfileUpdate
-        Skip updating the profile
+    Skip updating the profile
     .EXAMPLE
-        PS> Add-OMPProfileSetting -Name 'CustomSetting' -Value 'MySetting'
+    PS> Add-OMPProfileSetting -Name 'CustomSetting' -Value 'MySetting'
 
     .NOTES
-        Author: Zachary Loeber
+    Author: Zachary Loeber
+    .LINK
+    https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (

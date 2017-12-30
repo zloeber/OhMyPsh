@@ -1,9 +1,9 @@
 Function Invoke-OMPPersonalFunction {
     <#
     .SYNOPSIS
-        Dot sources a personal function file in the global context and tags it.
+        Dot sources a personal function file in the global context and tags it to ohmypsh.
     .DESCRIPTION
-        Dot sources a personal function file in the global context and tags it.
+        Dot sources a personal function file in the global context and tags it to ohmypsh.
     .PARAMETER Path
         Path for the file to import.
     .PARAMETER Tag

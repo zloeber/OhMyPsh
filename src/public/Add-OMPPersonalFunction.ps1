@@ -15,14 +15,10 @@ Function Add-OMPPersonalFunction {
 
         Adds 'C:\users\jdoe\scripts\myscript.ps1' to the list of functions that will be loaded
         with OhMyPsh for this user.
-
     .NOTES
         Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    .LINK
+        https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (

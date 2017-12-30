@@ -1,4 +1,0 @@
-$PreLoad = {}
-$PostLoad = {}
-$Config = {}
-$Shutdown = {}

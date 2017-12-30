@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Loads the vagrant powershell module that is not published anywere else besides on github. This is more of an example plugin.",
+    "Name":  "vagrant",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

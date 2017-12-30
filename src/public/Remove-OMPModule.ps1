@@ -1,27 +1,24 @@
 Function Remove-OMPModule {
     <#
     .SYNOPSIS
-        Removes a module from this session.
+    Removes a module from this session.
     .DESCRIPTION
-        Removes a module from this session.
+    Removes a module from this session.
     .PARAMETER Name
-        Name of the module
+    Name of the module
     .PARAMETER PluginSafe
-        If you are removing the module as part of a plugin use this switch to only unload a module if it isn't
-        in the autoloaded modules OhMyPsh profile setting or loaded prior to OhMyPsh being started. Note that
-        this is not 'safe' if there are multiple plugins loaded with the same module requirements.
+    If you are removing the module as part of a plugin use this switch to only unload a module if it isn't
+    in the autoloaded modules OhMyPsh profile setting or loaded prior to OhMyPsh being started. Note that
+    this is not 'safe' if there are multiple plugins loaded with the same module requirements.
     .EXAMPLE
-        PS> Remove-OMPModule -Name 'posh-git' -PluginSafe
+    PS> Remove-OMPModule -Name 'posh-git' -PluginSafe
 
-        Removes posh-git from this session if it was not autoloaded or loaded when OhMyPsh started.
+    Removes posh-git from this session if it was not autoloaded or loaded when OhMyPsh started.
 
     .NOTES
-        Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (

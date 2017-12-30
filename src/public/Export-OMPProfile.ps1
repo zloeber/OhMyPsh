@@ -1,18 +1,19 @@
 Function Export-OMPProfile {
     <#
     .SYNOPSIS
-        Saves a user profile.
+    Saves a user profile.
     .DESCRIPTION
-        Saves a user profile.
+    Saves a user profile.
     .PARAMETER Path
-        Path to the user module profile settings.
+    Path to the user module profile settings.
     .EXAMPLE
-        PS> Export-OMPProfile -Path C:\temp\.OhMyPsh.profile.json
+    PS> Export-OMPProfile -Path C:\temp\.OhMyPsh.profile.json
 
-        Saves the profile settings to C:\temp\.OhMyPsh.profile.json into the module settings
+    Saves the profile settings to C:\temp\.OhMyPsh.profile.json into the module settings
     .NOTES
-        Author: Zachary Loeber
-
+    Author: Zachary Loeber
+    .LINK
+    https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
     Param (

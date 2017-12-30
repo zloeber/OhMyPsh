@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Plugin to disable module autoloading to get around excessive autoloading that VS Code seems to do.",
+    "Name":  "vscode",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

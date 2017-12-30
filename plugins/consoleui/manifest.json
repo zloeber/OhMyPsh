@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Adds Read-Choice, Create-Menu, Read-HostContinue, and Spin-Busy console based functions to your session.",
+    "Name":  "consoleui",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

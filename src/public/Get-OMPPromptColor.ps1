@@ -1,23 +1,33 @@
 Function Get-OMPPromptColor {
     <#
     .SYNOPSIS
-        Display the Prompt color settings.
+    Display the Prompt color settings.
     .DESCRIPTION
-        Display the Prompt color settings.
+    Display the Prompt color settings.
     .EXAMPLE
-        PS> Get-OMPPromptColor
+    PS> Get-OMPPromptColor
 
-        Shows the Prompt color settings
+    Shows the Prompt color settings
     .NOTES
-        Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param ()
-    
-    $Script:PromptColors
+
+    [psobject]@{
+        BackgroundColor = $Host.UI.RawUI.BackgroundColor
+        ForegroundColor = $Host.UI.RawUI.ForegroundColor
+        ErrorForegroundColor = $Host.PrivateData.ErrorForegroundColor
+        WarningForegroundColor = $Host.PrivateData.WarningForegroundColor
+        DebugForegroundColor = $Host.PrivateData.DebugForegroundColor
+        VerboseForegroundColor = $Host.PrivateData.VerboseForegroundColor
+        ProgressForegroundColor = $Host.PrivateData.ProgressForegroundColor
+        ErrorBackgroundColor = $Host.PrivateData.ErrorBackgroundColor
+        WarningBackgroundColor  = $Host.PrivateData.WarningBackgroundColor
+        DebugBackgroundColor = $Host.PrivateData.DebugBackgroundColor
+        VerboseBackgroundColor = $Host.PrivateData.VerboseBackgroundColor
+        ProgressBackgroundColor = $Host.PrivateData.ProgressBackgroundColor
+    }
 }

@@ -1,0 +1,10 @@
+﻿{
+    "Platform":  [
+                     "Linux",
+                     "Windows",
+                     "OSX"
+                 ],
+    "Name":  "qod",
+    "Version":  "0.0.1",
+    "Description":  "Quote of the Day. Imports Get-Quote into the session and runs it once when the plugin is loaded. This effectively displays a random quote everytime you load OhMyPsh."
+}

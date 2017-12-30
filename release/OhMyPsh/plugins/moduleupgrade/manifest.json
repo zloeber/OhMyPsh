@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Adds Read-HostContinue and Upgrade-InstalledModule to your session and automatically calls Upgrade-InstalledModule after 7 new OhMyPsh sessions by default.",
+    "Name":  "moduleupgrade",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Colorizes and formats console output using ezout and Pansies. Currently colorizes the output of get-childitem (gci or dir), get-service, get-ompplugin, and match result of select-string",
+    "Name":  "ezout",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

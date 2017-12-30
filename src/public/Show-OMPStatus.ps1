@@ -1,16 +1,15 @@
 function Show-OMPStatus {
     <#
     .Synopsis
-       Shows OhMyPsh basic status information.
+    Shows OhMyPsh basic status information.
     .DESCRIPTION
-       Shows OhMyPsh basic status information.
-
+    Shows OhMyPsh basic status information.
     .EXAMPLE
-       Show-OMPStatus
+    PS> Show-OMPStatus
 
-       Shows OhMyPsh status information.
+    Shows OhMyPsh status information.
     .LINK
-       https://www.github.com/zloeber/OhMyPsh
+    https://www.github.com/zloeber/OhMyPsh
     #>
 
     [CmdletBinding()]

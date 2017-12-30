@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Use transparent nlog logging to get a copy of all output (such as write-verbose, write-host, et cetera) to an alternate log file location",
+    "Name":  "nlog",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

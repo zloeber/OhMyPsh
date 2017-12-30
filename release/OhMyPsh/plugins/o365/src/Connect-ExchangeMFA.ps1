@@ -168,5 +168,5 @@ Function Global:Connect-ExchangeMFA {
 
     #make sure the Exchange session uses the same proxy settings as IE/Edge
     $ProxySetting = New-PSSessionOption -ProxyAccessType IEConfig
-    Connect-EXOPSSession -PSSessionOption $ProxySetting
+    Import-Module (Connect-EXOPSSession -PSSessionOption $ProxySetting) -Global
 }

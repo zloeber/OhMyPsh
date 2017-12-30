@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Customize the default parameters of cmdlets and functions. This does things like change the output of get-help to a pop-up dialog instead of to the screen.",
+    "Name":  "psdefaultparams",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

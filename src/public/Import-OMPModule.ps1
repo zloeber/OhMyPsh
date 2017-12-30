@@ -1,32 +1,37 @@
 Function Import-OMPModule {
     <#
     .SYNOPSIS
-        Attempt to load and optionally install a powershell module.
+    Attempt to load and optionally install a powershell module.
     .DESCRIPTION
-        Attempt to load and optionally install a powershell module.
+    Attempt to load and optionally install a powershell module. By default all installed modules are scoped to the current user.
     .PARAMETER Name
-        Name of the module
+    Name of the module
+    .PARAMETER Prefix
+    Prefix commands imported.
     .EXAMPLE
-        PS> Import-OMPModule -Name 'posh-git'
+    PS> Import-OMPModule -Name 'posh-git'
 
-        If not already imported attempt to import posh-git. 
-        If the OhMyPsh profile allows, attempt to automatically install posh-git if it isn't found.
+    If not already imported attempt to import posh-git.
+    If the OhMyPsh profile allows, attempt to automatically install posh-git if it isn't found.
     .NOTES
-        Author: Zachary Loeber
-
-
-
-        Version History
-        1.0.0 - Initial release
+    Author: Zachary Loeber
+    .LINK
+    https://www.github.com/zloeber/OhMyPsh
     #>
     [CmdletBinding()]
 	param (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
-        [string[]]$Name
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string[]]$Name,
+        [Parameter()]
+        [string]$Prefix
     )
     Begin {
         Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
         $AllModules = @()
+        $ImportSplat = @{}
+        if (-not [string]::IsNullOrEmpty($Prefix)) {
+            $ImportSplat.Prefix = $Prefix
+        }
     }
     Process {
         $AllModules += $Name
@@ -52,7 +57,7 @@ Function Import-OMPModule {
             # If we made it this far and the module isn't loaded, try to do so now
             if (-not (get-module $Module)) {
                 Write-Verbose "Attempting to import module: $Module"
-                Import-Module $Module -Global -force
+                Import-Module $Module -Global -force @ImportSplat
             }
             else {
                 Write-Verbose "$Module is already loaded"

@@ -1,4 +1,4 @@
-﻿param(
+param(
     [parameter()]
     [string]$UserProfilePath
 )
@@ -8,7 +8,6 @@ if (-not [string]::IsNullOrEmpty($UserProfilePath)) {
     $ProfilePathArg.UserProfilePath = Resolve-Path -Path $UserProfilePath
 }
 
-#region Private Variables
 # Current script path
 [string]$ModulePath = Split-Path (get-variable myinvocation -scope script).value.Mycommand.Definition -Parent
 

@@ -1,4 +1,4 @@
-# These are core settings which we will not allowed to get removed
+# These are core settings which we will not allow to ever get removed
 $Script:OMPProfileCoreSettings = @(
     'AutoLoadModules',
     'AutoInstallModules',
@@ -8,7 +8,8 @@ $Script:OMPProfileCoreSettings = @(
     'UnloadModulesOnExit',
     'OMPRunCount',
     'OMPPluginRootPaths',
-    'OMPDebug'
+    'OMPDebug',
+    'OMPGitOutput'
 )
 
 <#
@@ -35,6 +36,9 @@ $Script:OMPProfile = @{
     OMPPluginRootPaths = @((Join-Path $ModulePath "plugins"))
     # Use this to see additional output when loading the module
     OMPDebug = $false
+    # Preferred git status method. Used in prompts, specifically in Write-OMPGitStatus. Can be:
+    # posh-git (module), psgit (module), script/other (no module, use the crappy baked in scripts with this module instead).
+    OMPGitOutput = 'script'
 }
 
 # Load any persistent data (overrides anything in OMPSettings if the hash element exists)
@@ -55,10 +59,12 @@ if ($Script:OMPProfile['OMPDebug']) {
 }
 
 # We need to keep some state information outside of the profile. This is the hash
-# used for this purpose.
+# used for this purpose. This combined with Get-OMPState can speed up some operations.
+# This is only able to be updated by OMP functions.
 $OMPState = @{
     PluginsLoaded = @()
     ModulesAlreadyLoaded = @((Get-Module).Name)
+    Platform = Get-OMPOSPlatform
 }
 
 <#
@@ -92,11 +98,13 @@ Foreach ($Plugin in ($Script:OMPProfile['Plugins'] | Sort-Object)) {
 # 4. Next the theme
 try {
     $Theme = $Script:OMPProfile['Theme']
-    Set-OMPTheme -Name $Theme -NoProfileUpdate
-    Write-Verbose "Theme Loaded: $($Theme)"
+    if (-not [string]::IsNullOrEmpty($Script:OMPProfile['Theme'])) {
+        Set-OMPTheme -Name $Theme -NoProfileUpdate
+        Write-Verbose "Theme Loaded: $($Theme)"
+    }
 }
 catch {
-    throw "Unable to load the following theme: $($Theme)"
+    Write-Warning "Unable to load the following theme: $($Theme)"
 }
 
 # 5. If we made it this far then we can bump up our run count by 1, save,
@@ -126,11 +134,12 @@ $ExecutionContext.SessionState.Module.OnRemove = {
         }
     }
     # Restore prompts, tabcompletion, aliases, and console settings
-    Restore-OMPOriginalPrompt
+    Restore-OMPConsolePrompt
     Restore-OMPOriginalTabCompletion
     Restore-OMPOriginalPSDefaultParameter
     Restore-OMPOriginalAlias
-    Restore-OMPOriginalConsole
+    Restore-OMPConsoleTitle
+    Restore-OMPConsoleColor
 }
 
 
@@ -144,3 +153,5 @@ if ($Script:OMPProfile['OMPDebug']) {
     $VerbosityFlag = @{}
     $VerbosePreference = $Script:OldVerbosePreference
 }
+
+$ThisModuleLoaded = $true

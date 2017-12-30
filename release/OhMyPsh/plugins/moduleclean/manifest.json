@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Adds Read-HostContinue and Remove-OldModule to your session and automatically calls Remove-OldModule after 8 new OhMyPsh sessions by default.",
+    "Name":  "moduleclean",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

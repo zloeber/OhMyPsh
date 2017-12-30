@@ -12,6 +12,8 @@ Function Set-OMPWindowTitle {
 
     .NOTES
         Author: Zachary Loeber
+    .LINK
+        https://github.com/zloeber/ohmypsh
     #>
     [CmdletBinding()]
 	param (
