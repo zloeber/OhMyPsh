@@ -50,9 +50,12 @@ function Get-OMPTheme {
             $Themes = @((Get-ChildItem (Join-Path $Script:ModulePath "Themes\$Name.ps1") -File -Filter '*.ps1').Name | ForEach-Object {$_ -replace '.ps1',''})
         }
         $Themes | ForEach-Object {
+            $ThemePath = Join-Path $Script:ModulePath "Themes\$($_).ps1"
             $object = New-Object -TypeName PSObject -Property @{
                 'Name' = $_
                 'Loaded' = if ($Script:OMPProfile['Theme'] -eq $_) {$true} else {$false}
+                'Path' = $ThemePath
+                'Content' = Get-Content $ThemePath
             }
 
             $object.PSTypeNames.Insert(0,'OMP.ThemeStatus')

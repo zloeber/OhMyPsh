@@ -22,7 +22,7 @@ Sets the default git output module.
 This can be used to flip between posh-git and psgit modules.
 This is important for customized prompt output as well as in general for managing git repos on your system.
 The default is just to use some basic scripts with this module.
-otherwise this can be posh-git or psgit (named so after the modules that get loaded).
+Otherwise this can be posh-git or psgit (named so after the modules that get loaded).
 Write-OMPGitStatus uses this setting directly to determine how to spit out VCS information to the prompt.
 
 ## EXAMPLES

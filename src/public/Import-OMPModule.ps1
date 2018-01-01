@@ -26,11 +26,19 @@ Function Import-OMPModule {
         [string]$Prefix
     )
     Begin {
-        Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
+
         $AllModules = @()
         $ImportSplat = @{}
         if (-not [string]::IsNullOrEmpty($Prefix)) {
             $ImportSplat.Prefix = $Prefix
+        }
+        if ($Force) {
+            $ImportSplat.Force = $true
         }
     }
     Process {
@@ -38,12 +46,13 @@ Function Import-OMPModule {
     }
     End {
         Foreach ($Module in $AllModules) {
-            if ((get-module $Module -ListAvailable) -eq $null) {
+            if ( $null -eq (Get-Module $Module -ListAvailable) ) {
                 if ($Script:OMPProfile['AutoInstallModules']) {
-                    Write-Verbose "Attempting to install missing module: $($Module)"
+                    Write-Verbose "$($FunctionName): Attempting to install missing module: $($Module)"
                     try {
+                        Import-Module PowerShellGet -Force
                         $null = Install-Module $Module -Scope:CurrentUser
-                        Write-Verbose "Module Installed: $($Module)"
+                        Write-Verbose "$($FunctionName): Module Installed - $($Module)"
                     }
                     catch {
                         throw "Unable to find or install the following module requirement: $($Module)"
@@ -54,13 +63,13 @@ Function Import-OMPModule {
                 }
             }
 
-            # If we made it this far and the module isn't loaded, try to do so now
+            # If we made it this far and the module isn't loaded, try to do so now. We have to import globaly for it to show up in the calling user's session.
             if (-not (get-module $Module)) {
-                Write-Verbose "Attempting to import module: $Module"
+                Write-Verbose "$($FunctionName): Attempting to import module - $Module"
                 Import-Module $Module -Global -force @ImportSplat
             }
             else {
-                Write-Verbose "$Module is already loaded"
+                Write-Verbose "$($FunctionName): $Module is already loaded"
                 return
             }
 
@@ -69,7 +78,7 @@ Function Import-OMPModule {
                 throw "$($Module) was not able to load!"
             }
             else {
-                Write-Verbose "Module Imported: $Module"
+                Write-Verbose "$($FunctionName): Module Imported - $Module"
             }
         }
     }

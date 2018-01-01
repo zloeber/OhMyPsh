@@ -7,8 +7,9 @@ Function Remove-OMPModule {
     .PARAMETER Name
     Name of the module
     .PARAMETER PluginSafe
-    If you are removing the module as part of a plugin use this switch to only unload a module if it isn't
-    in the autoloaded modules OhMyPsh profile setting or loaded prior to OhMyPsh being started. Note that
+    If you are removing the module as part of a plugin use this switch to
+    unload a module only if it is not in the autoloaded modules. This will also only unload
+    a module if it was loaded in this session (Loaded prior to OhMyPsh being started). Note that
     this is not 'safe' if there are multiple plugins loaded with the same module requirements.
     .EXAMPLE
     PS> Remove-OMPModule -Name 'posh-git' -PluginSafe

@@ -1,9 +1,9 @@
 Function Export-OMPProfile {
     <#
     .SYNOPSIS
-    Saves a user profile.
+    Saves the current OhMyPsh profile.
     .DESCRIPTION
-    Saves a user profile.
+    Saves the current OhMyPsh profile.
     .PARAMETER Path
     Path to the user module profile settings.
     .EXAMPLE

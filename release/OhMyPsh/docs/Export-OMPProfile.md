@@ -8,7 +8,7 @@ schema: 2.0.0
 # Export-OMPProfile
 
 ## SYNOPSIS
-Saves a user profile.
+Saves the current OhMyPsh profile.
 
 ## SYNTAX
 
@@ -17,7 +17,7 @@ Export-OMPProfile [[-Path] <String>]
 ```
 
 ## DESCRIPTION
-Saves a user profile.
+Saves the current OhMyPsh profile.
 
 ## EXAMPLES
 

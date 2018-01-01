@@ -3,6 +3,7 @@
     This uses psgit which, in turn, loads powerline. From here we setup several custom options.
 #>
 Set-OMPGitOutput -Name 'psgit'
+Import-OMPModule PowerLine
 
 if ((-not (get-module psgit)) -or (-not (Get-Module Powerline))) {
     Write-Output "Cannot use this theme without the powerline and psgit plugins (or modules) loaded!"

@@ -181,6 +181,33 @@ $PostLoad = {
         }
     } | Out-FormatData | Out-File -FilePath $PS1XMLOut -Force -Encoding:utf8
     Update-FormatData -PrependPath $PS1XMLOut
+
+    # OMP Theme Status (Get-OMPTheme)
+    $PS1XMLOut = Join-Path $FormatFilesPath ('OMPThemeStatus.format.ps1xml')
+    Write-FormatView -TypeName 'OMP.ThemeStatus' -Property Name, Loaded -AutoSize -VirtualProperty @{
+        Name = {
+            $_.Name
+        }
+        Loaded = {
+            if ($OMPPansiesModuleLoaded -and ($null -ne (get-variable OMPEZOutDefinitions)) -and $OMPConsoleHasANSI -and $Global:OMPEzOutPluginLoaded ) {
+                $revertcolor = New-Text -Object "" -ForegroundColor ((Get-OMPHostState).foreground) -ErrorAction:SilentlyContinue
+                if ($_.Loaded) {
+                    $statusout = New-Text -Object ($_.Loaded) -Foregroundcolor $Global:OMPEZOutDefinitions['OMPStatus'].Loaded['Color']
+                }
+                else {
+                    $statusout = New-Text -Object ($_.Loaded) -Foregroundcolor $Global:OMPEZOutDefinitions['OMPStatus'].UnLoaded['Color']
+                }
+
+                [string]$finaloutput = $statusout.ToString() + $revertcolor.ToString()
+
+                $finaloutput
+            }
+            else {
+                $_.Loaded
+            }
+        }
+    } | Out-FormatData | Out-File -FilePath $PS1XMLOut -Force -Encoding:utf8
+    Update-FormatData -PrependPath $PS1XMLOut
 }
 
 $Config = {

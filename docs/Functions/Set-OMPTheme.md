@@ -13,7 +13,7 @@ Sets the theme.
 ## SYNTAX
 
 ```
-Set-OMPTheme [-NoProfileUpdate] [-Force] [-Name <String>]
+Set-OMPTheme [-NoProfileUpdate] [-Safe] [-Name <String>]
 ```
 
 ## DESCRIPTION
@@ -43,8 +43,8 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Force
-Force update the profile regardless of errors returned when loading a theme.
+### -Safe
+Will not save the theme in the profile if there are any errors.
 
 ```yaml
 Type: SwitchParameter

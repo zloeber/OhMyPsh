@@ -1479,7 +1479,7 @@ function GET-OMPOSPlatform {
     <#
     .EXTERNALHELP OhMyPsh-help.xml
     .LINK
-        https://github.com/zloeber/OhMyPsh/tree/master/release/0.0.6/docs/Functions/GET-OMPOSPlatform.md
+        https://github.com/zloeber/OhMyPsh/tree/master/release/0.0.6/docs/Functions/Get-OMPOSPlatform.md
     #>
 
     [CmdletBinding()]
@@ -1609,6 +1609,75 @@ function Get-OMPPlugin {
         }
     }
 }
+
+
+function Get-OMPPowerShellProfile {
+    <#
+    .EXTERNALHELP OhMyPsh-help.xml
+    .LINK
+        https://github.com/zloeber/OhMyPsh/tree/master/release/0.0.6/docs/Functions/Get-OMPPowerShellProfile.md
+    #>
+
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [ValidateSet('AllUsersAllHosts','AllUsersCurrentHost','CurrentUserAllHosts','CurrentUserCurrentHost')]
+        [string]$ProfileType = 'CurrentUserCurrentHost'
+    )
+    begin {
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
+    }
+    end {
+        if (Test-Path $PROFILE.$ProfileType) {
+            Get-Content $PROFILE.$ProfileType
+        }
+        else {
+            Write-Warning "$($FunctionName): Profile does not exist - $($PROFILE.$ProfileType)"
+        }
+        Write-Verbose "$($FunctionName): End."
+    }
+}
+
+
+
+function Get-OMPPowerShellProfileState {
+    <#
+    .EXTERNALHELP OhMyPsh-help.xml
+    .LINK
+        https://github.com/zloeber/OhMyPsh/tree/master/release/0.0.6/docs/Functions/Get-OMPPowerShellProfileState.md
+    #>
+
+    [CmdletBinding()]
+    param(
+    )
+    begin {
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
+
+        $ProfileTypes = @('AllUsersAllHosts','AllUsersCurrentHost','CurrentUserAllHosts','CurrentUserCurrentHost')
+    }
+    end {
+        $order = 0
+        Foreach ($PType in $Profiletypes) {
+            $order++
+            New-Object -TypeName psobject -Property @{
+                Name = $PType
+                Exists = if (test-path $PROFILE.$Ptype) {$true} else {$false}
+                Path = $PROFILE.$Ptype
+                Order = $order
+            } | Select Order, Name, Exists, Path
+        }
+        Write-Verbose "$($FunctionName): End."
+    }
+}
+
 
 
 Function Get-OMPProfilePath {
@@ -1806,9 +1875,12 @@ function Get-OMPTheme {
             $Themes = @((Get-ChildItem (Join-Path $Script:ModulePath "Themes\$Name.ps1") -File -Filter '*.ps1').Name | ForEach-Object {$_ -replace '.ps1',''})
         }
         $Themes | ForEach-Object {
+            $ThemePath = Join-Path $Script:ModulePath "Themes\$($_).ps1"
             $object = New-Object -TypeName PSObject -Property @{
                 'Name' = $_
                 'Loaded' = if ($Script:OMPProfile['Theme'] -eq $_) {$true} else {$false}
+                'Path' = $ThemePath
+                'Content' = Get-Content $ThemePath
             }
 
             $object.PSTypeNames.Insert(0,'OMP.ThemeStatus')
@@ -1837,11 +1909,19 @@ Function Import-OMPModule {
         [string]$Prefix
     )
     Begin {
-        Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        if ($script:ThisModuleLoaded -eq $true) {
+            Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+        }
+        $FunctionName = $MyInvocation.MyCommand.Name
+        Write-Verbose "$($FunctionName): Begin."
+
         $AllModules = @()
         $ImportSplat = @{}
         if (-not [string]::IsNullOrEmpty($Prefix)) {
             $ImportSplat.Prefix = $Prefix
+        }
+        if ($Force) {
+            $ImportSplat.Force = $true
         }
     }
     Process {
@@ -1849,12 +1929,13 @@ Function Import-OMPModule {
     }
     End {
         Foreach ($Module in $AllModules) {
-            if ((get-module $Module -ListAvailable) -eq $null) {
+            if ( $null -eq (Get-Module $Module -ListAvailable) ) {
                 if ($Script:OMPProfile['AutoInstallModules']) {
-                    Write-Verbose "Attempting to install missing module: $($Module)"
+                    Write-Verbose "$($FunctionName): Attempting to install missing module: $($Module)"
                     try {
+                        Import-Module PowerShellGet -Force
                         $null = Install-Module $Module -Scope:CurrentUser
-                        Write-Verbose "Module Installed: $($Module)"
+                        Write-Verbose "$($FunctionName): Module Installed - $($Module)"
                     }
                     catch {
                         throw "Unable to find or install the following module requirement: $($Module)"
@@ -1865,13 +1946,13 @@ Function Import-OMPModule {
                 }
             }
 
-            # If we made it this far and the module isn't loaded, try to do so now
+            # If we made it this far and the module isn't loaded, try to do so now. We have to import globaly for it to show up in the calling user's session.
             if (-not (get-module $Module)) {
-                Write-Verbose "Attempting to import module: $Module"
+                Write-Verbose "$($FunctionName): Attempting to import module - $Module"
                 Import-Module $Module -Global -force @ImportSplat
             }
             else {
-                Write-Verbose "$Module is already loaded"
+                Write-Verbose "$($FunctionName): $Module is already loaded"
                 return
             }
 
@@ -1880,7 +1961,7 @@ Function Import-OMPModule {
                 throw "$($Module) was not able to load!"
             }
             else {
-                Write-Verbose "Module Imported: $Module"
+                Write-Verbose "$($FunctionName): Module Imported - $Module"
             }
         }
     }
@@ -2836,6 +2917,10 @@ function Set-OMPGitOutput {
             }
             Default {
                 Write-Verbose "$($FunctionName): Setting to script, leaving git modules as they are"
+                Remove-OMPAutoLoadModule 'psgit'
+                Remove-OMPAutoLoadModule 'posh-git'
+                if (get-module 'psgit') { Remove-Module 'psgit' -ErrorAction:SilentlyContinue }
+                if (get-module 'posh-git') { Remove-Module 'posh-git' -ErrorAction:SilentlyContinue }
                 Set-OMPProfileSetting -Name:OMPGitOutput -Value:$Name
             }
         }
@@ -2917,7 +3002,7 @@ Function Set-OMPTheme {
         [Parameter()]
         [switch]$NoProfileUpdate,
         [Parameter()]
-        [switch]$Force
+        [switch]$Safe
     )
 
     dynamicparam {
@@ -2954,13 +3039,15 @@ Function Set-OMPTheme {
     }
 
     Process {
-        try {
-            if ($null -ne $PSBoundParameters) {
-                # Pull in the dynamic parameters first
-                New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
+        if ($PSBoundParameters.ContainsKey('Name')) {
+            try {
+                if ($null -ne $PSBoundParameters['Name']) {
+                    # Pull in the dynamic parameters first
+                    New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
+                }
             }
+            catch {}
         }
-        catch {}
 
         if ([string]::IsNullOrEmpty($Name)) {
             Write-Output 'No theme specified, restoring the original PowerShell prompt and removing current theme'
@@ -2980,19 +3067,19 @@ Function Set-OMPTheme {
                     $sb = [Scriptblock]::create(".{$script}")
                     Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
                     if (-not ([string]::IsNullOrEmpty($errmsg))) {
-                        Write-Warning "Errors occurred loading $ThemeScriptPath. Errors returned were $errmsg"
-                        if ($Force) {
-                            Write-Warning "Forcing the OhMyPsh profile to update with the theme regardless of errors returned during processing!"
-                            Set-OMPProfileSetting -Name 'Theme' -Value $Name
+                        Write-Verbose "Errors occurred loading $ThemeScriptPath. Errors returned were $errmsg"
+                        if ($Safe) {
+                            Write-Warning "Errors were found on the error stream when loading the theme and the safe option was set, NOT saving this theme as the theme for this profile."
+                            return
                         }
                     }
-                    else {
-                        Set-OMPProfileSetting -Name 'Theme' -Value $Name
-                    }
+
+                    Set-OMPProfileSetting -Name 'Theme' -Value $Name
                 }
                 catch {
                     Write-Warning "Unable to load theme file $ThemeScriptPath"
                     Write-Warning "Errors reported - $errmsg"
+                    throw
                 }
             }
             else {

@@ -24,7 +24,7 @@ Dot sources a plugin
 Adds a new setting to the user profile settings if they do not already exist. Afterwards the profile is automatically exported and saved.
 
 ### [Export-OMPProfile](Export-OMPProfile.md)
-Saves a user profile.
+Saves the current OhMyPsh profile.
 
 ### [Get-OMPGitBranchName](Get-OMPGitBranchName.md)
 Returns the git branch based on the current directory.
@@ -46,6 +46,12 @@ Retrieve the current OS platform.
 
 ### [Get-OMPPlugin](Get-OMPPlugin.md)
 Shows plugins and their load state.
+
+### [Get-OMPPowerShellProfile](Get-OMPPowerShellProfile.md)
+Retrieves the current session PowerShell profile.
+
+### [Get-OMPPowerShellProfileState](Get-OMPPowerShellProfileState.md)
+Retrieves all Powershell profiles for the exisisting session, if they exist, and the order of operation they are processed.
 
 ### [Get-OMPProfilePath](Get-OMPProfilePath.md)
 Retrieve the current OhMyPsh profile path.

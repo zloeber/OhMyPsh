@@ -8,8 +8,8 @@ Function Set-OMPTheme {
     Name of the Theme
     .PARAMETER NoProfileUpdate
     Skip updating the profile
-    .PARAMETER Force
-    Force update the profile regardless of errors returned when loading a theme.
+    .PARAMETER Safe
+    Will not save the theme in the profile if there are any errors.
     .EXAMPLE
     PS> Set-OMPTheme -Name 'base'
     .NOTES
@@ -22,7 +22,7 @@ Function Set-OMPTheme {
         [Parameter()]
         [switch]$NoProfileUpdate,
         [Parameter()]
-        [switch]$Force
+        [switch]$Safe
     )
 
     dynamicparam {
@@ -59,13 +59,15 @@ Function Set-OMPTheme {
     }
 
     Process {
-        try {
-            if ($null -ne $PSBoundParameters) {
-                # Pull in the dynamic parameters first
-                New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
+        if ($PSBoundParameters.ContainsKey('Name')) {
+            try {
+                if ($null -ne $PSBoundParameters['Name']) {
+                    # Pull in the dynamic parameters first
+                    New-DynamicParameter -CreateVariables -BoundParameters $PSBoundParameters
+                }
             }
+            catch {}
         }
-        catch {}
 
         if ([string]::IsNullOrEmpty($Name)) {
             Write-Output 'No theme specified, restoring the original PowerShell prompt and removing current theme'
@@ -85,19 +87,19 @@ Function Set-OMPTheme {
                     $sb = [Scriptblock]::create(".{$script}")
                     Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
                     if (-not ([string]::IsNullOrEmpty($errmsg))) {
-                        Write-Warning "Errors occurred loading $ThemeScriptPath. Errors returned were $errmsg"
-                        if ($Force) {
-                            Write-Warning "Forcing the OhMyPsh profile to update with the theme regardless of errors returned during processing!"
-                            Set-OMPProfileSetting -Name 'Theme' -Value $Name
+                        Write-Verbose "Errors occurred loading $ThemeScriptPath. Errors returned were $errmsg"
+                        if ($Safe) {
+                            Write-Warning "Errors were found on the error stream when loading the theme and the safe option was set, NOT saving this theme as the theme for this profile."
+                            return
                         }
                     }
-                    else {
-                        Set-OMPProfileSetting -Name 'Theme' -Value $Name
-                    }
+
+                    Set-OMPProfileSetting -Name 'Theme' -Value $Name
                 }
                 catch {
                     Write-Warning "Unable to load theme file $ThemeScriptPath"
                     Write-Warning "Errors reported - $errmsg"
+                    throw
                 }
             }
             else {

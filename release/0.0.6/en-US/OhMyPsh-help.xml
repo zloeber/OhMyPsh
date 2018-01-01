@@ -485,11 +485,11 @@
       <command:verb>Export</command:verb>
       <command:noun>OMPProfile</command:noun>
       <maml:description>
-        <maml:para>Saves a user profile.</maml:para>
+        <maml:para>Saves the current OhMyPsh profile.</maml:para>
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>Saves a user profile.</maml:para>
+      <maml:para>Saves the current OhMyPsh profile.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
@@ -919,6 +919,113 @@
       <maml:navigationLink>
         <maml:linkText>https://www.github.com/zloeber/OhMyPsh</maml:linkText>
         <maml:uri>https://www.github.com/zloeber/OhMyPsh</maml:uri>
+      </maml:navigationLink>
+    </command:relatedLinks>
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Get-OMPPowerShellProfile</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>OMPPowerShellProfile</command:noun>
+      <maml:description>
+        <maml:para>Retrieves the current session PowerShell profile.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Retrieves the current session PowerShell profile.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-OMPPowerShellProfile</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+          <maml:name>ProfileType</maml:name>
+          <maml:Description>
+            <maml:para>The type of profile to show the contents of.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>CurrentUserCurrentHost</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+        <maml:name>ProfileType</maml:name>
+        <maml:Description>
+          <maml:para>The type of profile to show the contents of.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>CurrentUserCurrentHost</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes />
+    <command:returnValues />
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Zachary Loeber</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>Get-OMPPowerShellProfile</dev:code>
+        <dev:remarks>
+          <maml:para></maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>https://github.com/zloeber/OhMyPsh</maml:linkText>
+        <maml:uri>https://github.com/zloeber/OhMyPsh</maml:uri>
+      </maml:navigationLink>
+    </command:relatedLinks>
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Get-OMPPowerShellProfileState</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>OMPPowerShellProfileState</command:noun>
+      <maml:description>
+        <maml:para>Retrieves all Powershell profiles for the exisisting session, if they exist, and the order of operation they are processed.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Retrieves all Powershell profiles for the exisisting session, if they exist, and the order of operation they are processed.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-OMPPowerShellProfileState</maml:name>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters />
+    <command:inputTypes />
+    <command:returnValues />
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para>Author: Zachary Loeber</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>Get-OMPPowerShellProfileState</dev:code>
+        <dev:remarks>
+          <maml:para></maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>https://github.com/zloeber/OhMyPsh</maml:linkText>
+        <maml:uri>https://github.com/zloeber/OhMyPsh</maml:uri>
       </maml:navigationLink>
     </command:relatedLinks>
   </command:command>
@@ -1861,7 +1968,7 @@
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
           <maml:name>PluginSafe</maml:name>
           <maml:Description>
-            <maml:para>If you are removing the module as part of a plugin use this switch to only unload a module if it isn't in the autoloaded modules OhMyPsh profile setting or loaded prior to OhMyPsh being started. Note that this is not 'safe' if there are multiple plugins loaded with the same module requirements.</maml:para>
+            <maml:para>If you are removing the module as part of a plugin use this switch to unload a module only if it is not in the autoloaded modules. This will also only unload a module if it was loaded in this session (Loaded prior to OhMyPsh being started). Note that this is not 'safe' if there are multiple plugins loaded with the same module requirements.</maml:para>
           </maml:Description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -1887,7 +1994,7 @@
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
         <maml:name>PluginSafe</maml:name>
         <maml:Description>
-          <maml:para>If you are removing the module as part of a plugin use this switch to only unload a module if it isn't in the autoloaded modules OhMyPsh profile setting or loaded prior to OhMyPsh being started. Note that this is not 'safe' if there are multiple plugins loaded with the same module requirements.</maml:para>
+          <maml:para>If you are removing the module as part of a plugin use this switch to unload a module only if it is not in the autoloaded modules. This will also only unload a module if it was loaded in this session (Loaded prior to OhMyPsh being started). Note that this is not 'safe' if there are multiple plugins loaded with the same module requirements.</maml:para>
         </maml:Description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>
@@ -2858,7 +2965,7 @@
       </maml:description>
     </command:details>
     <maml:description>
-      <maml:para>Sets the default git output module. This can be used to flip between posh-git and psgit modules. This is important for customized prompt output as well as in general for managing git repos on your system. The default is just to use some basic scripts with this module. otherwise this can be posh-git or psgit (named so after the modules that get loaded). Write-OMPGitStatus uses this setting directly to determine how to spit out VCS information to the prompt.</maml:para>
+      <maml:para>Sets the default git output module. This can be used to flip between posh-git and psgit modules. This is important for customized prompt output as well as in general for managing git repos on your system. The default is just to use some basic scripts with this module. Otherwise this can be posh-git or psgit (named so after the modules that get loaded). Write-OMPGitStatus uses this setting directly to determine how to spit out VCS information to the prompt.</maml:para>
     </maml:description>
     <command:syntax>
       <command:syntaxItem>
@@ -3031,9 +3138,9 @@
           <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>Force</maml:name>
+          <maml:name>Safe</maml:name>
           <maml:Description>
-            <maml:para>Force update the profile regardless of errors returned when loading a theme.</maml:para>
+            <maml:para>Will not save the theme in the profile if there are any errors.</maml:para>
           </maml:Description>
           <dev:type>
             <maml:name>SwitchParameter</maml:name>
@@ -3069,9 +3176,9 @@
         <dev:defaultValue>False</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>Force</maml:name>
+        <maml:name>Safe</maml:name>
         <maml:Description>
-          <maml:para>Force update the profile regardless of errors returned when loading a theme.</maml:para>
+          <maml:para>Will not save the theme in the profile if there are any errors.</maml:para>
         </maml:Description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
         <dev:type>

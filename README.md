@@ -8,17 +8,29 @@ I've tested out several custom PowerShell console modules and each had great fea
 
 The short description of what this module does is that OhMyPsh allows for a far more dynamic PowerShell profile. It allows you to source in functions from anywhere automatically that can easily be removed from your session. It can apply and revert console or Powershell host settings or be used as an ad hoc scheduler to run scripts ever nth session (or any other logic you can script out for that matter).
 
+The name of this module is a purposeful tip of the hat to Robby Russell's excellent [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh) project. I've attempted to take the best ideas from oh-my-zsh like plugins and themes. But due to inherent differences between PowerShell and other shells I was able to mostly eliminate the use of environmental variables and really contain the OhMyPsh shell experience. I've actually designed this module with the following principles in mind:
+- Little to no use of environmental variables for maintaining shell configuration state
+- Try as much as possible to have all settings be reversable (so if you unload OhMyPsh you get the exact same shell and modules that you started with).
+- Extremely flexible and easy to expand upon plugin system
+
 ## Installation
 
-Powershell Gallery (PS 5.0, Preferred method)
+**Prequisites**
+
+For this module to be useful you will need to have a modern version of PowerShell. Anything 5 or greater should suffice. You will also want to ensure that you aren't using a super dated version of PowerShellGet and PackageManagement. These modules are often not actually tied to the powershell gallery on a default Windows 10 install so they may actually never get updated! So fix that by manually running install-module/update-module in an admin console [as covered here.](https://docs.microsoft.com/en-us/powershell/gallery/psget/get_psget_module)
+
+`Install-Module -Name PowerShellGet -Force`
+`Update-Module -Name PowerShellGet`
+
+Then install OhMyPsh from the Powershell Gallery (PS 5.0, Preferred method)
 
 `install-module OhMyPsh`
 
-Manual Installation
+Or manually install if really need to for some odd reason:
 
 `iex (New-Object Net.WebClient).DownloadString("https://www.github.com/zloeber/OhMyPsh/raw/master/Install.ps1")`
 
-Or clone this repository to your local machine, extract, go to the .\releases\OhMyPsh directory and import the module to your session to test, but not install this module.
+Or, if you are looking to develop this project further, clone this repository to your local machine, extract, go to the .\releases\OhMyPsh directory and import the module to your session to test, but not install this module.
 
 ## Features
 
@@ -28,7 +40,6 @@ OhMyPsh includes several appealing features for both the beginning and seasoned 
 - Very easy addition, loading, and unloading of plugins and modules
 - Theming (psreadline, pscolor, powerline, your imagination)
 - Persistent custom profile settings (simple json)
-- Integrated PSColor output (that can safely be unloaded)
 - Automatic dot sourcing of personal functions from any location
 - A good amount of cool plugins baked right in the base install
 
@@ -43,16 +54,7 @@ The starting profile of OhMyPsh is rather plain (I have to keep it this way for 
 ```
 install-module OhMyPsh
 import-module OhMyPsh
-Add-OMPPlugin psreadline
-Add-OMPPlugin pscolor
-Add-OMPPlugin banner
-Add-OMPPlugin psdefaultparams
-Add-OMPPlugin qod
-Add-OMPPlugin fzf
-Add-OMPPlugin powerline
-Add-OMPPlugin psgit
-Add-OMPPlugin moduleupgrade
-Add-OMPPlugin moduleclean
+'psreadline','ezout','banner','qod','psdefaultparams','moduleupgrade','moduleclean' | Add-OMPPlugin
 Set-OMPTheme powerline
 ```
 This will install the module, load it for the first time, enable a handlful of my favorite plugins and set a default theme. Along the way, any missing modules should automatically get installed on your system (psgit and powerline specifically).
