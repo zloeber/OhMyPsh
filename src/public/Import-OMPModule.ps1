@@ -33,7 +33,7 @@ Function Import-OMPModule {
         Write-Verbose "$($FunctionName): Begin."
 
         $AllModules = @()
-        $ImportSplat = $Script:OMPProfile['OMPModuleInstallSplat']
+        $ImportSplat = @{}
         if (-not [string]::IsNullOrEmpty($Prefix)) {
             $ImportSplat.Prefix = $Prefix
         }
@@ -51,7 +51,8 @@ Function Import-OMPModule {
                     Write-Verbose "$($FunctionName): Attempting to install missing module: $($Module)"
                     try {
                         Import-Module PowerShellGet -Force
-                        $null = Install-Module $Module -Scope:CurrentUser
+                        $InstallModuleSplat = $Script:OMPProfile['OMPModuleInstallSplat']
+                        $null = Install-Module $Module @InstallModuleSplat
                         Write-Verbose "$($FunctionName): Module Installed - $($Module)"
                     }
                     catch {
