@@ -39,6 +39,11 @@ $Script:OMPProfile = @{
     # Preferred git status method. Used in prompts, specifically in Write-OMPGitStatus. Can be:
     # posh-git (module), psgit (module), script/other (no module, use the crappy baked in scripts with this module instead).
     OMPGitOutput = 'script'
+    OMPModuleInstallSplat = @{
+        'AllowClobber' = $true
+        'Force' = $true
+        'Scope' = 'CurrentUser'
+    }
 }
 
 # Load any persistent data (overrides anything in OMPSettings if the hash element exists)

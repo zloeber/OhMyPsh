@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Enables chocolatey command completion for the choco.exe command.",
+    "Name":  "chocolatey",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

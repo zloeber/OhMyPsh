@@ -1,0 +1,8 @@
+﻿{
+    "Description":  "Conemu additional functions for such things as loading additional themes.",
+    "Name":  "conemu",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
+}

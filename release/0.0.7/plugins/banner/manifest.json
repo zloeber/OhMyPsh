@@ -1,0 +1,10 @@
+﻿{
+    "Description":  "Adds Write-SessionBannerToHost to your session and calls it every time the plugin is loaded.",
+    "Name":  "banner",
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows",
+                     "Linux",
+                     "OSX"
+                 ]
+}

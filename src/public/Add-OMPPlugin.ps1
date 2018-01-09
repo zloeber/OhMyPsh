@@ -87,116 +87,121 @@ Function Add-OMPPlugin {
             Write-Warning "Unable to locate $Name in any plugin paths!"
             return
         }
-
         $LoadedPlugins = $Script:OMPState['PluginsLoaded']
         if (($LoadedPlugins -notcontains $Name) -or $Force) {
-            $Preload = $null
-            $PostLoad = $null
-            $LoadScript = Join-Path $PluginPath "$Name\Load.ps1"
+            $PluginPlatform = (Get-OMPPlugin $Name).Platform
+            if ($PluginPlatform -contains (Get-OMPState).Platform) {
+                $Preload = $null
+                $PostLoad = $null
+                $LoadScript = Join-Path $PluginPath "$Name\Load.ps1"
 
-            if (-not (Test-Path $LoadScript)) {
-                Write-Error "Unable to find the plugin load file: $LoadScript"
-            }
-            Write-Verbose "Executing plugin load script: $LoadScript"
-
-            # pull in the preload and postload definitions
-            $errmsg = $null
-            $sb = [Scriptblock]::create(".{$(Get-Content -Path $LoadScript -Raw)}")
-            Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $DebugOutput) {
-                Write-Warning "Unable to load plugin $Name"
-                Write-Warning "Error: $($errmsg | Select *)"
-                if (-not $Force) {
-                    return
+                if (-not (Test-Path $LoadScript)) {
+                    Write-Error "Unable to find the plugin load file: $LoadScript"
                 }
-            }
+                Write-Verbose "Executing plugin load script: $LoadScript"
 
-            # Run preload plugin code
-            $errmsg = $null
-            $Preloadsb = [Scriptblock]::create(".{$Preload}")
-            Invoke-Command -NoNewScope -ScriptBlock $Preloadsb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
-                Write-Warning "Unable to load plugin preload code for $Name"
-                Write-Warning "Error: $($errmsg | Select *)"
-                if (-not $Force) {
-                    return
+                # pull in the preload and postload definitions
+                $errmsg = $null
+                $sb = [Scriptblock]::create(".{$(Get-Content -Path $LoadScript -Raw)}")
+                Invoke-Command -NoNewScope -ScriptBlock $sb -ErrorVariable errmsg 2>$null
+                if (-not ([string]::IsNullOrEmpty($errmsg)) -and $DebugOutput) {
+                    Write-Warning "Unable to load plugin $Name"
+                    Write-Warning "Error: $($errmsg | Select *)"
+                    if (-not $Force) {
+                        return
+                    }
                 }
-            }
 
-            # Dot source any file in the plugin src directory of this plugin and track global functions
-            $FullPluginSrcPath = Join-Path $PluginPath "$Name\src"
-            Write-Verbose "Plugin $Name source file repo is $FullPluginSrcPath"
+                # Run preload plugin code
+                $errmsg = $null
+                $Preloadsb = [Scriptblock]::create(".{$Preload}")
+                Invoke-Command -NoNewScope -ScriptBlock $Preloadsb -ErrorVariable errmsg 2>$null
+                if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
+                    Write-Warning "Unable to load plugin preload code for $Name"
+                    Write-Warning "Error: $($errmsg | Select *)"
+                    if (-not $Force) {
+                        return
+                    }
+                }
 
-            Get-ChildItem -Path $FullPluginSrcPath -Recurse -Filter "*.ps1" -File | Sort-Object Name | ForEach-Object {
-                Write-Verbose "Dot sourcing plugin script file: $($_.Name)"
-                # First dot source the ps1
-                . $_.FullName
+                # Dot source any file in the plugin src directory of this plugin and track global functions
+                $FullPluginSrcPath = Join-Path $PluginPath "$Name\src"
+                Write-Verbose "Plugin $Name source file repo is $FullPluginSrcPath"
 
-                # Next look for any globally defined functions and tag them with a noteproperty to track
-                ([System.Management.Automation.Language.Parser]::ParseInput((Get-Content -Path $_.FullName -Raw), [ref]$null, [ref]$null)).FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $false) | Foreach-Object {
-                    if (($_.Name).StartsWith('Global:')) {
-                        $globalfunc = Get-ChildItem -Path "Function:\$($_.Name -replace 'Global:','')"
-                        if ($GlobalFunc -ne $null) {
-                            Write-Verbose "Plugin function exported into the global session: $($_.Name -replace 'Global:','')"
-                            $globalfunc | Add-Member -MemberType 'NoteProperty' -Name 'ohmypsh' -Value "$Name" -Force
+                Get-ChildItem -Path $FullPluginSrcPath -Recurse -Filter "*.ps1" -File | Sort-Object Name | ForEach-Object {
+                    Write-Verbose "Dot sourcing plugin script file: $($_.Name)"
+                    # First dot source the ps1
+                    . $_.FullName
+
+                    # Next look for any globally defined functions and tag them with a noteproperty to track
+                    ([System.Management.Automation.Language.Parser]::ParseInput((Get-Content -Path $_.FullName -Raw), [ref]$null, [ref]$null)).FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $false) | Foreach-Object {
+                        if (($_.Name).StartsWith('Global:')) {
+                            $globalfunc = Get-ChildItem -Path "Function:\$($_.Name -replace 'Global:','')"
+                            if ($GlobalFunc -ne $null) {
+                                Write-Verbose "Plugin function exported into the global session: $($_.Name -replace 'Global:','')"
+                                $globalfunc | Add-Member -MemberType 'NoteProperty' -Name 'ohmypsh' -Value "$Name" -Force
+                            }
                         }
                     }
                 }
-            }
 
-            # Run postload plugin code
-            $errmsg = $null
-            $Postloadsb = [Scriptblock]::create(".{$Postload}")
-            Invoke-Command -NoNewScope -ScriptBlock $Postloadsb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
-                $errmsg
-                Write-Warning "Unable to load plugin postload code for $Name"
-                Write-Warning "Error: $($errmsg | Select *)"
-                if (-not $Force) {
-                    return
+                # Run postload plugin code
+                $errmsg = $null
+                $Postloadsb = [Scriptblock]::create(".{$Postload}")
+                Invoke-Command -NoNewScope -ScriptBlock $Postloadsb -ErrorVariable errmsg 2>$null
+                if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
+                    $errmsg
+                    Write-Warning "Unable to load plugin postload code for $Name"
+                    Write-Warning "Error: $($errmsg | Select *)"
+                    if (-not $Force) {
+                        return
+                    }
                 }
-            }
 
-            # Finally run any config plugin code
-            if ((Test-OMPProfileSetting -Name "pluginconfig_$Name") -and (-not $UpdateConfig)) {
-                $Config = Get-OMPProfileSetting -Name "pluginconfig_$Name"
-            }
-            else {
-                # If not already in the profile config add the plugin config variable
-                if (Test-OMPProfileSetting -Name "pluginconfig_$Name") {
-                    Set-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                # Finally run any config plugin code
+                if ((Test-OMPProfileSetting -Name "pluginconfig_$Name") -and (-not $UpdateConfig)) {
+                    $Config = Get-OMPProfileSetting -Name "pluginconfig_$Name"
                 }
                 else {
-                    Add-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                    # If not already in the profile config add the plugin config variable
+                    if (Test-OMPProfileSetting -Name "pluginconfig_$Name") {
+                        Set-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                    }
+                    else {
+                        Add-OMPProfileSetting -Name "pluginconfig_$Name" -Value ([string]$Config)
+                    }
+                }
+                $errmsg = $null
+                $Configsb = [Scriptblock]::create(".{$Config}")
+                Invoke-Command -NoNewScope -ScriptBlock $Configsb -ErrorVariable errmsg 2>$null
+                if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
+                    $errmsg
+                    Write-Warning "Unable to load plugin configuration code for $Name"
+                    Write-Warning "Error: $($errmsg | Select *)"
+                    if (-not $Force) {
+                        return
+                    }
+                }
+
+                # If we made it this far then update our loaded plugins list
+                $LoadedPlugins += $Name
+                $Script:OMPState['PluginsLoaded'] = @($LoadedPlugins | Sort-Object -Unique)
+
+                if (-not $NoProfileUpdate) {
+                    try {
+                        # update the profile plugins list as well
+                        $ProfPlugins = $Script:OMPProfile['Plugins']
+                        $ProfPlugins += $Name
+                        $Script:OMPProfile['Plugins'] = @($ProfPlugins | Sort-Object -Unique)
+                        Export-OMPProfile
+                    }
+                    catch {
+                        throw "Unable to update or save the profile!"
+                    }
                 }
             }
-            $errmsg = $null
-            $Configsb = [Scriptblock]::create(".{$Config}")
-            Invoke-Command -NoNewScope -ScriptBlock $Configsb -ErrorVariable errmsg 2>$null
-            if (-not ([string]::IsNullOrEmpty($errmsg)) -and $Debug) {
-                $errmsg
-                Write-Warning "Unable to load plugin configuration code for $Name"
-                Write-Warning "Error: $($errmsg | Select *)"
-                if (-not $Force) {
-                    return
-                }
-            }
-
-            # If we made it this far then update our loaded plugins list
-            $LoadedPlugins += $Name
-            $Script:OMPState['PluginsLoaded'] = @($LoadedPlugins | Sort-Object -Unique)
-
-            if (-not $NoProfileUpdate) {
-                try {
-                    # update the profile plugins list as well
-                    $ProfPlugins = $Script:OMPProfile['Plugins']
-                    $ProfPlugins += $Name
-                    $Script:OMPProfile['Plugins'] = @($ProfPlugins | Sort-Object -Unique)
-                    Export-OMPProfile
-                }
-                catch {
-                    throw "Unable to update or save the profile!"
-                }
+            else {
+                Write-Warning "This plugin is not supported on $((Get-OMPState).Platform) and has NOT been loaded!"
             }
         }
         else {

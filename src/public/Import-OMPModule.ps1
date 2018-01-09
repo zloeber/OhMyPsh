@@ -33,7 +33,7 @@ Function Import-OMPModule {
         Write-Verbose "$($FunctionName): Begin."
 
         $AllModules = @()
-        $ImportSplat = @{}
+        $ImportSplat = $Script:OMPProfile['OMPModuleInstallSplat']
         if (-not [string]::IsNullOrEmpty($Prefix)) {
             $ImportSplat.Prefix = $Prefix
         }

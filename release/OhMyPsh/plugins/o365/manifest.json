@@ -1,5 +1,8 @@
 ﻿{
     "Description":  "This plugin includes functions used to connect to Exchange Online, S4B Online, or a local Exchange server. Includes both MFA and standard credential connectivity methods.",
     "Name":  "o365",
-    "Version":  "0.0.1"
+    "Version":  "0.0.1",
+    "Platform":  [
+                     "Windows"
+                 ]
 }

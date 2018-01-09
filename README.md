@@ -36,10 +36,11 @@ Or, if you are looking to develop this project further, clone this repository to
 
 OhMyPsh includes several appealing features for both the beginning and seasoned PowerShell user. This includes (but is not limited to):
 - Automatic module installation
-- Automatic module updating and cleaning (via plugins)
+- Colorized and custom formatted output (via the ezout plugin)
+- Automatic module updating and cleaning (again, via plugins)
 - Very easy addition, loading, and unloading of plugins and modules
-- Theming (psreadline, pscolor, powerline, your imagination)
-- Persistent custom profile settings (simple json)
+- Theming (psreadline, ezout, powerline, your imagination)
+- Persistent custom profile settings (simple json file stored in your profile path)
 - Automatic dot sourcing of personal functions from any location
 - A good amount of cool plugins baked right in the base install
 
@@ -116,11 +117,12 @@ if ($_ISCONSOLE) {
 Removed, we can control chocolatey tab completion with the OhMyPsh chocolatey plugin instead.
 #>
 
-
 }
 
 ## And finally, relax the code signing restriction so we can actually get work done
+Import-module Microsoft.PowerShell.Security
 Set-ExecutionPolicy RemoteSigned Process
+
 ```
 
 ### Plugins
@@ -152,7 +154,7 @@ vmware            False
 ```
 
 #### Builtin Plugins
-Arguably, plugins are what make OhMyPsh neat. I've packaged up several useful (or sometimes just amusing) plugins as examples of what this module can do with nominal effort. A good portion of these are mostly a mini-collection of functions that could also be modules if you wanted to go that route. But some of these really can enhance your PowerShell console session experience. Here is a description of some of them.
+Arguably, plugins are what make OhMyPsh neat. I've packaged up several useful (or sometimes just amusing) plugins as examples of what this module can do with nominal effort. A good portion of these plugins are a mini-collection of functions that could also be modules if you wanted to go that route. But some of these plugins can really enhance your PowerShell console session experience. Here is a description of some of them.
 
 ##### PSReadline
 I'm listing this one first for a reason. Several other plugins and features simply don't exist without this module running. PowerShell 5.0 loads psreadline by default in every new PowerShell session. This plugin doesn't really serve to ensure that the module is loaded (though it does do that as well) but rather acts as a holding place for psreadline customizations you want applied across the board.
@@ -162,8 +164,16 @@ This plugin also puts logic around loading prior session history into new sessio
 You should feel free to modify your psreadline configuration to suit your needs.
 
 ```
-plugins -> psreadline -> src -> psreadline.ps1
+Join-Path (Get-OMPPlugin psreadline).Path 'Load.ps1'
 ```
+
+Or if you just want to modify some of the psreadline options and don't care about the history stuff I've added:
+
+`(Get-OMPProfileSetting)['pluginconfig_psreadline'] | clip`
+
+That will put the configuration on your clipboard to paste into whatever editor to modify. Then just assign it back.
+
+`Set-OMPProfileSetting -Name 'pluginconfig_psreadline' -Value '#whatever'`
 
 This plugin does add a few variables to the OhMyPsh user profile
 
@@ -232,6 +242,9 @@ This will prompt you for automatic upgrade of 'old' modules on your system. This
 ModuleAutoUpgradeFrequency - Default is every 7 times OhMyPsh is loaded.
 
 **NOTE**: The underlying function isn't heavily optimized and can take a while to process!
+
+##### nlog
+Provides the ability to track all output from all streams (including verbose/debug/warning/error/stadard) to another file via nlog binaries. Can be useful in some scenarios.
 
 ##### o365
 Another small plugin with several o365 functions and aliases you may find useful for connecting to s4b online, exchange online, exchange on premise, and with or without MFA. This one plugin is what spurred the entire OhMyPsh project as I wanted my team to have the funtions at their disposal in any session. View the imported functions with `Get-OMPLoadedFunction` after the plugin has been added.
